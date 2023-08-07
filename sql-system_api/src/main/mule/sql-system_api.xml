@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="get-case" doc:name="HTTP Listener config" doc:id="15dc47a3-991d-45bf-9f66-31d7ba4c3bab" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="bfcefd4f-6446-4039-af85-eb2316459a02" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" database="sql_salesforce_database" />
+	</db:config>
+	<flow name="sql-system_apiFlow" doc:id="ed15f01d-1f70-4fbe-86ee-a9b5ec31abd1" >
+		<http:listener doc:name="Listener" doc:id="efb8ffac-dfd7-4a7c-8ea5-dcafb3582de5" config-ref="get-case" path="/cases"/>
+		<db:select doc:name="Select cases" doc:id="bbc73a36-1fd0-4722-8ac3-b68cde2c1ba3" config-ref="Database_Config">
+			<db:sql><![CDATA[SELECT * FROM account;]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="c4082337-a925-4557-b079-19fd3d750c96">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="sql-system_apiFlow1" doc:id="503db08c-0853-4367-a288-300a2865933d" >
+		<http:listener doc:name="Listener" doc:id="f08470a2-e068-4647-baaa-48f51216174d" config-ref="get-case" path="/cases/{id}" allowedMethods="GET"/>
+		<db:select doc:name="Select one case" doc:id="0fc8362c-58cb-45ed-8500-1a771f8be8eb" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from case where id = :id;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	id: attributes.uriParams.id
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="1ac2fa0e-045d-40aa-9842-bb844160cbf5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="sql-system_apiFlow3" doc:id="e2c6e4ab-ef1d-49b6-ab04-c6ad7818b8af" >
+		<http:listener doc:name="Listener" doc:id="ee0e9675-c9ed-4fed-a6df-d4661a30f5f2" config-ref="get-case" path="/cases" allowedMethods="POST"/>
+		<db:insert doc:name="Insert one case" doc:id="f38695d6-889b-4f6d-a2d1-b5bc626bce4a" >
+			<db:sql ><![CDATA[INSERT INTO `case` ( `AccountId`, `CaseNumber`, `Origin`, `Reason`, `ContactEmail`, `ContactFax`, `ContactId`, `Description`, `Comments`, `Priority`, `Status`, `Subject`, `Type`) VALUES (:AccountId, :CaseNumber, :Origin, :Reason, :ContactEmail, :ContactFax, :ContactId, :Description, :Comments, :Priority, :Status, :Subject, :Type);]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	AccountId: payload.AccountId,
+	CaseNumber: payload.CaseNumber,
+	Origin: payload.Origin,
+	Reason: payload.Reason,
+	ContactEmail: payload.ContactEmail,
+	ContactFax: payload.ContactFax,
+	ContactId: payload.ContactId,
+	Description: payload.Description,
+	Comments: payload.Comments,
+	Priority: payload.Priority,
+	Status: payload.Status,
+	Subject: payload.Subject,
+	Type: payload.Type
+}]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform doc:name="Transform Message" doc:id="2e5b700a-5ca8-46a3-9f45-c9b0d39f713f">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
