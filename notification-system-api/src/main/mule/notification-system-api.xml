@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:slack="http://www.mulesoft.org/schema/mule/slack"
+	xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/slack http://www.mulesoft.org/schema/mule/slack/current/mule-slack.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP_Listener_config" doc:id="9f2cc990-9dd4-4a69-a674-2acc03478c5f" >
+		<http:listener-connection host="0.0.0.0" port="8082" tlsContext="TLS_Context" protocol="HTTPS"/>
+	</http:listener-config>
+	<email:smtp-config name="Email_SMTP" doc:name="Email SMTP" doc:id="eff0a630-5bba-4397-a9f9-ecd4c326cc63" >
+		<email:smtp-connection host="smtp-relay.brevo.com" port="587" user="galvan.victor.m222@gmail.com" password="BQcA9TOsbJEVtnpF" />
+	</email:smtp-config>
+	<slack:config name="Slack_Connector_Config" doc:name="Slack_Connector_Config" doc:id="39e25038-5a7b-4d5f-a5ac-82dbacc79e86">
+		<slack:slack-auth-connection>
+			<slack:oauth-authorization-code consumerKey="5700468985749.5696751464550" consumerSecret="18ee03c2f9fbe4db4c248fa1f950974c" authorizationUrl="https://slack.com/oauth/v2/authorize" accessTokenUrl="https://slack.com/api/oauth.v2.access" scopes="chat:write"/>
+			<slack:oauth-callback-config listenerConfig="HTTP_Listener_config" callbackPath="/callback" authorizePath="/authorize" externalCallbackUrl="https://localhost:8082/callback" />
+		</slack:slack-auth-connection>
+	</slack:config>
+	<tls:context name="TLS_Context" doc:name="TLS_Context" doc:id="b7fe0937-b020-49ed-8fd9-b4b062ccde62">
+		<tls:key-store type="jks" path="mule.jks" keyPassword="kndnumero222!@#$" password="kndnumero222!@#$" />
+	</tls:context>
+	<flow name="notification-system-apiFlow" doc:id="38557156-b9b1-496f-a461-91385e002964" >
+		<http:listener doc:name="Listener MAIL" doc:id="6cba56ad-88ff-4706-8082-c5e07b295fdf" config-ref="HTTP_Listener_config" path="/sendmail"/>
+		<email:send doc:name="Send" doc:id="f713d963-5c66-4bb2-9fcc-03f604d1cfd9" config-ref="Email_SMTP" fromAddress="galvan.victor.m222@gmail.com" subject="Notification System Salesforce">
+			<email:to-addresses >
+				<email:to-address value="victorgalvan2000@gmail.com" />
+			</email:to-addresses>
+		</email:send>
+		<logger level="INFO" doc:name="Logger" doc:id="1032f41f-b66d-4424-af6a-b37ba6ce3e31" />
+	</flow>
+	<flow name="notification-system-apiFlow1" doc:id="f23d63b1-a706-4548-8a1d-2484900eac30" >
+		<http:listener doc:name="Listener SLACK" doc:id="50712202-722b-427c-8d90-9ad3bb32fe52" config-ref="HTTP_Listener_config" path="/slack-notification" allowedMethods="POST"/>
+		<ee:transform doc:name="Transform Message" doc:id="da6d1096-5250-4c5b-b28f-ef55e6733d20" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<slack:create-chatpost-message doc:name="Send Message" doc:id="b346b8c7-905b-423b-8366-2b4af3931d3f" config-ref="Slack_Connector_Config">
+		</slack:create-chatpost-message>
+		<logger level="INFO" doc:name="Logger" doc:id="d66ac75e-274a-419d-8d45-6e05092e2ee6" />
+	</flow>
+</mule>
