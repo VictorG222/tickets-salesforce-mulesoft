@@ -6,16 +6,16 @@
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-	<http:listener-config name="get-case" doc:name="HTTP Listener config" doc:id="15dc47a3-991d-45bf-9f66-31d7ba4c3bab" >
-		<http:listener-connection host="0.0.0.0" port="8081" />
+	<http:listener-config name="get-SQL" doc:name="HTTP Listener config" doc:id="15dc47a3-991d-45bf-9f66-31d7ba4c3bab" >
+		<http:listener-connection host="localhost" port="8081" />
 	</http:listener-config>
 	<db:config name="Database_Config" doc:name="Database Config" doc:id="bfcefd4f-6446-4039-af85-eb2316459a02" >
 		<db:my-sql-connection host="localhost" port="3306" user="root" database="sql_salesforce_database" />
 	</db:config>
 	<flow name="sql-system_apiFlow" doc:id="ed15f01d-1f70-4fbe-86ee-a9b5ec31abd1" >
-		<http:listener doc:name="Listener" doc:id="efb8ffac-dfd7-4a7c-8ea5-dcafb3582de5" config-ref="get-case" path="/cases"/>
+		<http:listener doc:name="Listener CASE GET" doc:id="efb8ffac-dfd7-4a7c-8ea5-dcafb3582de5" config-ref="get-SQL" path="/cases"/>
 		<db:select doc:name="Select cases" doc:id="bbc73a36-1fd0-4722-8ac3-b68cde2c1ba3" config-ref="Database_Config">
-			<db:sql><![CDATA[SELECT * FROM account;]]></db:sql>
+			<db:sql><![CDATA[SELECT * FROM case;]]></db:sql>
 		</db:select>
 		<ee:transform doc:name="Transform Message" doc:id="c4082337-a925-4557-b079-19fd3d750c96">
 			<ee:message>
@@ -27,7 +27,7 @@ payload]]></ee:set-payload>
 		</ee:transform>
 	</flow>
 	<flow name="sql-system_apiFlow1" doc:id="503db08c-0853-4367-a288-300a2865933d" >
-		<http:listener doc:name="Listener" doc:id="f08470a2-e068-4647-baaa-48f51216174d" config-ref="get-case" path="/cases/{id}" allowedMethods="GET"/>
+		<http:listener doc:name="Listener CASE GET" doc:id="f08470a2-e068-4647-baaa-48f51216174d" config-ref="get-SQL" path="/cases/{id}" allowedMethods="GET"/>
 		<db:select doc:name="Select one case" doc:id="0fc8362c-58cb-45ed-8500-1a771f8be8eb" config-ref="Database_Config">
 			<db:sql ><![CDATA[select * from case where id = :id;]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{
@@ -44,7 +44,7 @@ payload]]></ee:set-payload>
 		</ee:transform>
 	</flow>
 	<flow name="sql-system_apiFlow3" doc:id="e2c6e4ab-ef1d-49b6-ab04-c6ad7818b8af" >
-		<http:listener doc:name="Listener" doc:id="ee0e9675-c9ed-4fed-a6df-d4661a30f5f2" config-ref="get-case" path="/cases" allowedMethods="POST"/>
+		<http:listener doc:name="Listener POST CASE" doc:id="ee0e9675-c9ed-4fed-a6df-d4661a30f5f2" config-ref="get-SQL" path="/cases" allowedMethods="POST"/>
 		<db:insert doc:name="Insert one case" doc:id="f38695d6-889b-4f6d-a2d1-b5bc626bce4a" >
 			<db:sql ><![CDATA[INSERT INTO `case` ( `AccountId`, `CaseNumber`, `Origin`, `Reason`, `ContactEmail`, `ContactFax`, `ContactId`, `Description`, `Comments`, `Priority`, `Status`, `Subject`, `Type`) VALUES (:AccountId, :CaseNumber, :Origin, :Reason, :ContactEmail, :ContactFax, :ContactId, :Description, :Comments, :Priority, :Status, :Subject, :Type);]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{
@@ -66,6 +66,174 @@ payload]]></ee:set-payload>
 		<ee:transform doc:name="Transform Message" doc:id="2e5b700a-5ca8-46a3-9f45-c9b0d39f713f">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="sql-system_apiFlow2" doc:id="d547443e-f09d-4624-abeb-d61cca2026d8" >
+		<http:listener doc:name="Listener PATCH CASE" doc:id="5fcc958d-f916-4ca4-8c48-c67553a0c067" config-ref="get-SQL" path="/cases" allowedMethods="PATCH"/>
+		<db:update doc:name="Update case" doc:id="a8b834da-d697-42f2-9b1d-362178da898a" config-ref="Database_Config">
+			<db:sql ><![CDATA[UPDATE `case` SET `AccountId` = :AccountId, `CaseNumber` = :CaseNumber, `Origin` = :Origin, `Reason` = :Reason, `ContactEmail` = :ContactEmail, `ContactFax` = :ContactFax, `ContactId` = :ContactId, `Description` = :Description, `Priority` = :Priority, `Status` = :Status, `Subject` = :Subject, `Type` = :Type  WHERE `case`.`id` = :id]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	id: payload.id,
+	AccountId: payload.AccountId,
+	CaseNumber: payload.CaseNumber,
+	Origin: payload.Origin,
+	Reason: payload.Reason,
+	ContactEmail: payload.ContactEmail,
+	ContactFax: payload.ContactFax,
+	ContactId: payload.ContactId,
+	Description: payload.Description,
+	Comments: payload.Comments,
+	Priority: payload.Priority,
+	Status: payload.Status,
+	Subject: payload.Subject,
+	Type: payload.Type
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="8d98b6b0-256c-4ce0-9813-e414fea83e23" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="sql-system_apiFlow4" doc:id="3de34d7d-b600-4780-bfd5-da6ff5aa195e" >
+		<http:listener doc:name="Listener DELETE CASE" doc:id="91b5ec7e-d1a7-4217-87b1-437986d7f882" config-ref="get-SQL" path="/cases/{id}" allowedMethods="DELETE"/>
+		<db:delete doc:name="Delete one case" doc:id="67f1ff55-287e-4ba9-b371-46ccad938625" >
+			<db:sql ><![CDATA[DELETE FROM case where id=:id;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	id: attributes.uriParams.id
+}]]]></db:input-parameters>
+		</db:delete>
+		<ee:transform doc:name="Transform Message" doc:id="2c311f1b-3859-45dd-bba0-ca84b61a9408" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="sql-system_apiFlow5" doc:id="74d6c34d-5e22-417c-8a9b-4d86b2d73832" >
+		<http:listener doc:name="Listener ACCOUNT GET" doc:id="899a903a-c161-460d-bd59-ec807e261c9f" config-ref="get-SQL" path="/accounts" />
+		<db:select doc:name="Select Accounts" doc:id="0ac513a5-2cff-4ffb-977a-3192ada75fa8" config-ref="Database_Config" >
+			<db:sql ><![CDATA[SELECT * FROM account;]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="d951efa5-8f1d-4c83-8cf7-fb91707d24ce" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="sql-system_apiFlow6" doc:id="9972a1fd-b24b-4a03-b233-8bb9d43c1c4c" >
+		<http:listener doc:name="Listener ACCOUNT GET" doc:id="276721e4-66d1-4813-be2f-2103a6d5d811" config-ref="get-SQL" path="/accounts/{id}" allowedMethods="GET" />
+		<db:select doc:name="Select one account" doc:id="a9a68943-eabc-4aa3-a159-e875c10d4417" config-ref="Database_Config" >
+			<db:sql ><![CDATA[select * from account where id = :id;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	id: attributes.uriParams.id
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="ab707377-d332-4ec4-ba85-7aa98531356f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="sql-system_apiFlow7" doc:id="999b710d-6114-4f8b-9eee-2f45fa4b3fe9" >
+		<http:listener doc:name="Listener POST ACCOUNT" doc:id="37b80795-b594-49e0-85a2-8a0b2b4ab8fd" config-ref="get-SQL" path="/accounts" allowedMethods="POST" />
+		<db:insert doc:name="Insert one account" doc:id="b9a2c288-04cb-4aff-b60e-1dea389feaca" >
+			<db:sql ><![CDATA[INSERT INTO `account` (`Name`, `account_number`, `site`, `account_source`, `annual_revenue`, `billing_address`, `clean_status`, `description`, `tier`, `number_of_mployees`, `fax`, `industry`, `number_of_locations__c`, `ownership`, `phone`, `rating`, `shipping_address`, `type`, `website`, `year_started`) VALUES (:Name, :AccountNumber, :Site, :AccountSource, :AnnualRevenue, :BillingAddress, :CleanStatus, :Description, :Tier, :NumberOfEmployees, :Fax, :Industry, :NumberofLocations__c, :Ownership, :Phone, :Rating, :ShippingAddress, :Type, :Website, :YearStarted)]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	Name: payload.Name,
+	AccountNumber: payload.AccountNumber,
+	Site: payload.Site,
+	AccountSource: payload.AccountSource,
+	AnnualRevenue: payload.AnnualRevenue,
+	BillingAddress: payload.BillingAddress,
+	CleanStatus: payload.CleanStatus,
+	Description: payload.Description,
+	Tier: payload.Tier,
+	NumberOfEmployees: payload.NumberOfEmployees,
+	Fax: payload.Fax,
+	Industry: payload.Industry,
+	NumberofLocations__c: payload.NumberofLocations__c,
+	Ownership: payload.Ownership,
+	Phone: payload.Phone,
+	Rating: payload.Rating,
+	ShippingAddress: payload.ShippingAddress,
+	Type: payload.Type,
+	Website: payload.Website,
+	YearStarted: payload.YearStarted
+}]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform doc:name="Transform Message" doc:id="550cae56-3541-4aea-a2b5-4ba1f8becbd8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="sql-system_apiFlow8" doc:id="f8849115-fe06-4ed8-a6a2-d441a20a691b" >
+		<http:listener doc:name="Listener PATCH ACCOUNT" doc:id="60b7e852-19d3-4c33-8f76-6356b609f4ee" config-ref="get-SQL" path="/accounts" allowedMethods="PATCH" />
+		<db:update doc:name="Update account" doc:id="3b32ca83-3a13-4789-91d3-5d9eb82f37da" config-ref="Database_Config" >
+			<db:sql ><![CDATA[UPDATE `account` SET `Name` = :Name, `account_number` = :AccountNumber, `site` = :Site, `account_source` = :AccountSource, `annual_revenue` = :AnnualRevenue, `billing_address` = :BillingAddress, `clean_status` = :CleanStatus, `description` = :Description, `tier` = :Tier, `number_of_mployees` = :NumberOfEmployees, `fax` = :Fax, `industry` = :Industry, `number_of_locations__c` = :NumberofLocations__c, `ownership` = :Ownership, `phone` = :Phone, `rating` = :Rating, `shipping_address` = :ShippingAddress, `type` = :Type, `website` = :Website, `year_started` = :YearStarted WHERE `account`.`id` = :id]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	id: payload.id,
+	Name: payload.Name,
+	AccountNumber: payload.AccountNumber,
+	Site: payload.Site,
+	AccountSource: payload.AccountSource,
+	AnnualRevenue: payload.AnnualRevenue,
+	BillingAddress: payload.BillingAddress,
+	CleanStatus: payload.CleanStatus,
+	Description: payload.Description,
+	Tier: payload.Tier,
+	NumberOfEmployees: payload.NumberOfEmployees,
+	Fax: payload.Fax,
+	Industry: payload.Industry,
+	NumberofLocations__c: payload.NumberofLocations__c,
+	Ownership: payload.Ownership,
+	Phone: payload.Phone,
+	Rating: payload.Rating,
+	ShippingAddress: payload.ShippingAddress,
+	Type: payload.Type,
+	Website: payload.Website,
+	YearStarted: payload.YearStarted
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="b024163d-4c58-4a98-9379-79116a33f208" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="sql-system_apiFlow9" doc:id="358f3879-3b39-43bf-abee-03972ea51dbb" >
+		<http:listener doc:name="Listener DELETE ACCOUNT" doc:id="a6090a8b-6ff0-4d62-bbf2-b2ad843f89df" config-ref="get-SQL" path="/accounts/{id}" allowedMethods="DELETE" />
+		<db:delete doc:name="Delete one account" doc:id="f0b09bf1-0d2f-47cf-ba2e-9434cd505b78" >
+			<db:sql ><![CDATA[DELETE FROM account where id=:id;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	id: attributes.uriParams.id
+}]]]></db:input-parameters>
+		</db:delete>
+		<ee:transform doc:name="Transform Message" doc:id="e63ba4d4-155b-43da-a103-8827dd27b4cf" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
 payload]]></ee:set-payload>
