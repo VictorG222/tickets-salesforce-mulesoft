@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="8686404e-ce55-4d74-9464-0c7dc0c8ff45" >
+		<http:listener-connection host="0.0.0.0" port="8083" />
+	</http:listener-config>
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="3285f98a-2d72-4fbf-afcb-51e45908cd5d" >
+		<salesforce:basic-connection username="victorgalvan2000@gmail.com" password="KNDnumero2" securityToken="WF15IoDVyu2IZMN8vi0Kf9s1" />
+	</salesforce:sfdc-config>
+	<flow name="salesforce-system-apiFlow" doc:id="a148cd71-2a44-403c-bc9d-86c3aec92414" >
+		<http:listener doc:name="Listener POST CASE" doc:id="a91e30d3-d15c-4550-8acc-e1d5ecd1b2cd" config-ref="HTTP_Listener_config" path="/cases"/>
+		<ee:transform doc:name="Transform Message" doc:id="458610e7-b6d8-4dcd-a99f-fef81bf42e3c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+[
+	{
+	
+	}
+]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:create doc:name="Create" doc:id="29f31999-86d9-4aec-97e1-507048fd5d96" config-ref="Salesforce_Config" type="Account"/>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="f2530da6-11f3-47b6-a09e-fe0a6c7bf2da" />
+		<logger level="INFO" doc:name="Logger" doc:id="ec5e8771-fb71-4dee-bd63-2c680c930ecb" />
+	</flow>
+	<flow name="salesforce-system-apiFlow1" doc:id="83a818cc-186f-4d09-a7bc-65316b487333" >
+		<http:listener doc:name="Listener GET CASES" doc:id="e297e775-b80c-4f27-bb86-16063d748f64" config-ref="HTTP_Listener_config" path="/cases/{limit}" allowedMethods="GET"/>
+		<salesforce:query doc:name="Query" doc:id="b22819b6-622d-41d2-8140-f7ba19cce25f" config-ref="Salesforce_Config">
+			<salesforce:salesforce-query ><![CDATA[select AccountId, CaseNumber, Origin, Reason, ContactEmail, ContactFax, ContactId, Description, Comments, Priority, Status, Subject, Type from case limit :limit]]></salesforce:salesforce-query>
+			<salesforce:parameters ><![CDATA[#[{
+	limit: attributes.uriParams.limit
+}]]]></salesforce:parameters>
+		</salesforce:query>
+		<ee:transform doc:name="Transform Message" doc:id="8a6e06e9-5010-4525-846f-4d5fcb9f16cc">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="6afe9a8a-c0ad-4330-a5b9-3032c0aa01a2" />
+		<logger level="INFO" doc:name="Logger" doc:id="a4926a72-d8cc-4a98-a532-46db29f1acad" />
+	</flow>
+	<flow name="salesforce-system-apiFlow2" doc:id="73e55b77-7067-406d-a292-7da2f1b592dc" >
+		<http:listener doc:name="Listener GET ACCOUNTS" doc:id="08ba83c7-81d2-49db-9abb-2ad9ea99ea9e" config-ref="HTTP_Listener_config" path="/accounts/{limit}" allowedMethods="GET" />
+		<salesforce:query doc:name="Query" doc:id="9ba73a82-dab2-4ef7-9c58-01d9a0e0e011" config-ref="Salesforce_Config" >
+			<salesforce:salesforce-query ><![CDATA[select Name, AccountNumber, Site, AccountSource, AnnualRevenue, BillingAddress, CleanStatus, Description, NumberOfEmployees, Fax, Industry, Ownership, Phone, Rating, ShippingAddress, Type, Website, YearStarted from account limit :limit]]></salesforce:salesforce-query>
+			<salesforce:parameters ><![CDATA[#[{
+	limit: attributes.uriParams.limit
+}]]]></salesforce:parameters>
+		</salesforce:query>
+		<ee:transform doc:name="Transform Message" doc:id="48d0cd0e-523a-4639-b06c-352a0d55537e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="2ecaf0a5-fad8-46e9-95c9-632e4de55554" />
+		<logger level="INFO" doc:name="Logger" doc:id="ff960d6c-101e-4858-8070-5c07be4e920d" />
+	</flow>
+	<flow name="salesforce-system-apiFlow3" doc:id="91d37928-370a-4fb4-bd8f-ef98a41fafb3" >
+		<http:listener doc:name="Listener GET CONTACTS" doc:id="0daec672-a15c-4a9f-974f-4924504c3d1a" config-ref="HTTP_Listener_config" path="/contacts/{limit}" allowedMethods="GET" />
+		<salesforce:query doc:name="Query" doc:id="559cee99-978a-4b84-bb77-fb17b5823212" config-ref="Salesforce_Config" >
+			<salesforce:salesforce-query ><![CDATA[select AssistantName, AssistantPhone, Birthdate, Department, Description, Email, Fax, Title, AccountId from Contact limit :limit]]></salesforce:salesforce-query>
+			<salesforce:parameters ><![CDATA[#[{
+	limit: attributes.uriParams.limit
+}]]]></salesforce:parameters>
+		</salesforce:query>
+		<ee:transform doc:name="Transform Message" doc:id="b3aeb21b-0e08-4630-9024-09bd06f9f411" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="f57cb9cf-8056-4281-a739-a22308084578" />
+		<logger level="INFO" doc:name="Logger" doc:id="ccb162e0-a247-48e6-b818-126aa35fe432" />
+	</flow>
+</mule>
