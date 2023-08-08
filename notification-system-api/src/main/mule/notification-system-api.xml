@@ -23,7 +23,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	<tls:context name="TLS_Context" doc:name="TLS_Context" doc:id="b7fe0937-b020-49ed-8fd9-b4b062ccde62">
 		<tls:key-store type="jks" path="mule.jks" keyPassword="kndnumero222!@#$" password="kndnumero222!@#$" />
 	</tls:context>
-	<flow name="notification-system-apiFlow" doc:id="38557156-b9b1-496f-a461-91385e002964" >
+	<flow name="notification-system-sendmail" doc:id="38557156-b9b1-496f-a461-91385e002964" >
 		<http:listener doc:name="Listener MAIL" doc:id="6cba56ad-88ff-4706-8082-c5e07b295fdf" config-ref="HTTP_Listener_config" path="/sendmail"/>
 		<email:send doc:name="Send" doc:id="f713d963-5c66-4bb2-9fcc-03f604d1cfd9" config-ref="Email_SMTP" fromAddress="galvan.victor.m222@gmail.com" subject="Notification System Salesforce">
 			<email:to-addresses >
@@ -32,7 +32,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		</email:send>
 		<logger level="INFO" doc:name="Logger" doc:id="1032f41f-b66d-4424-af6a-b37ba6ce3e31" />
 	</flow>
-	<flow name="notification-system-apiFlow1" doc:id="f23d63b1-a706-4548-8a1d-2484900eac30" >
+	<flow name="notification-system-sendslack" doc:id="f23d63b1-a706-4548-8a1d-2484900eac30" >
 		<http:listener doc:name="Listener SLACK" doc:id="50712202-722b-427c-8d90-9ad3bb32fe52" config-ref="HTTP_Listener_config" path="/slack-notification" allowedMethods="POST"/>
 		<ee:transform doc:name="Transform Message" doc:id="da6d1096-5250-4c5b-b28f-ef55e6733d20" >
 			<ee:message >
