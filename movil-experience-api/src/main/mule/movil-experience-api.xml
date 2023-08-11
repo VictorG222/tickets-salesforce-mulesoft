@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="43c1881d-deb2-422e-a618-5687a6fd40b6" >
+		<http:listener-connection host="0.0.0.0" port="8085" protocol="HTTPS" tlsContext="TLS_Context"/>
+	</http:listener-config>
+	<tls:context name="TLS_Context" doc:name="TLS Context" doc:id="78e6853a-593a-49e4-8a8d-dea9f7fb968a" >
+		<tls:key-store type="jks" path="mule.jks" keyPassword="kndnumero222!@#$" password="kndnumero222!@#$" />
+	</tls:context>
+	<flow name="movil-experience-get-cases" doc:id="3a38c911-2afd-4cac-ac45-62b3a9150ee9" >
+		<http:listener doc:name="Listener" doc:id="5804ecda-ba3c-42ad-928c-c6136839e65a" config-ref="HTTP_Listener_config" path="/casos" allowedMethods="GET"/>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="c7efe429-739a-4717-a73c-7d351aeb0b48" />
+		<http:request method="GET" doc:name="Request" doc:id="991874df-7cba-4eb7-b965-15452b6e8ad0" />
+		<ee:transform doc:name="Transform Message" doc:id="a0c4a9e9-e085-44c1-8300-ea1a1a9b58f8">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="c44fbaf8-e14c-43b4-86af-bba0192a35c2" />
+	</flow>
+	<flow name="movil-experience-get-accounts" doc:id="a02e1861-a8a2-4bc1-ba32-48144f47bd6c" >
+		<http:listener doc:name="Listener" doc:id="ccbaeb10-b571-494f-8acf-3955dbd9fdac" config-ref="HTTP_Listener_config" path="/casos" allowedMethods="GET" />
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="8925a467-68c9-4fba-820d-e85a38ce03d2" />
+		<http:request method="GET" doc:name="Request" doc:id="13f22cff-d825-47b3-a058-c94725100fe8" />
+		<ee:transform doc:name="Transform Message" doc:id="f5b15939-eb67-48a5-b532-76eb3e0251d0" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="c9774e97-0f73-4ef7-9d17-7283c118164b" />
+	</flow>
+	<flow name="movil-experience-get-contacs" doc:id="9c41773c-facf-4452-8f34-7c7dd6a6a26e" >
+		<http:listener doc:name="Listener" doc:id="a0ff3373-5674-4b2c-a945-ced06ff8ddb6" config-ref="HTTP_Listener_config" path="/casos" allowedMethods="GET" />
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="dd14b9cd-77e2-4039-9fbc-6e36810aaae3" />
+		<http:request method="GET" doc:name="Request" doc:id="e3ee2338-a37a-43f7-b379-74cca2a80494" />
+		<ee:transform doc:name="Transform Message" doc:id="83f85db7-4883-486f-9cea-87d0cc86b25e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="8a00b487-f1db-4081-b7a4-f85f75684530" />
+	</flow>
+</mule>

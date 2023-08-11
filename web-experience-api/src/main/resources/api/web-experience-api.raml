@@ -1,0 +1,60 @@
+#%RAML 1.0
+version: v1.0
+title: web-experience-api
+
+types:
+    caseCVS:
+      type: file
+      fileTypes: ['application/csv']
+    accountCVS:
+      type: file
+      fileTypes: ['application/csv']
+    contactCVS:
+      type: file
+      fileTypes: ['application/csv']
+
+/casos:
+  /{ID}:
+    post:
+      description: Envio de ticktickets en formato CSV
+      displayName: Envio de ticktickets en formato CSV
+      body:
+        application/csv:
+          type: caseCVS
+      responses:
+        200:
+          body:
+            application/json:
+              example:
+                message: Casos enviados
+
+/cuentas:
+  /{ID}:
+    post:
+      description: Envio de cuentas en formato CSV
+      displayName: Envio de cuentas en formato CSV
+      body:
+        application/csv:
+          type: accountCVS
+      responses:
+        200:
+          body:
+            application/json:
+              example:
+                message: Cuentas enviadas
+
+/contactos:
+  /{ID}:
+    post:
+      description: Envio de contactos en formato CSV
+      displayName: Envio de contactos en formato CSV
+      body:
+        application/csv:
+          type: contactCVS
+      responses:
+        200:
+          body:
+            application/json:
+              example:
+                message: Contactos enviados
+        

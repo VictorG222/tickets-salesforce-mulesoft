@@ -1,17 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
-	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
-	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
-http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
 	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="8686404e-ce55-4d74-9464-0c7dc0c8ff45" >
-		<http:listener-connection host="0.0.0.0" port="8083" />
+		<http:listener-connection host="0.0.0.0" port="8083" protocol="HTTPS" tlsContext="TLS_Context"/>
 	</http:listener-config>
 	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="3285f98a-2d72-4fbf-afcb-51e45908cd5d" >
 		<salesforce:basic-connection username="victorgalvan2000@gmail.com" password="KNDnumero2" securityToken="WF15IoDVyu2IZMN8vi0Kf9s1" />
 	</salesforce:sfdc-config>
+	<tls:context name="TLS_Context" doc:name="TLS Context" doc:id="82594b6e-95a4-4d32-81e2-658fc8ab9cad" >
+		<tls:key-store keyPassword="kndnumero222!@#$" password="kndnumero222!@#$" type="jks" path="mule.jks"/>
+	</tls:context>
 	<flow name="salesforce-system-get-cases" doc:id="83a818cc-186f-4d09-a7bc-65316b487333" >
 		<http:listener doc:name="Listener GET CASES" doc:id="e297e775-b80c-4f27-bb86-16063d748f64" config-ref="HTTP_Listener_config" path="/cases/{limit}" allowedMethods="GET"/>
 		<salesforce:query doc:name="Query" doc:id="b22819b6-622d-41d2-8140-f7ba19cce25f" config-ref="Salesforce_Config">
@@ -93,7 +97,7 @@ payload]]></ee:set-payload>
 		<logger level="INFO" doc:name="Logger" doc:id="ec5e8771-fb71-4dee-bd63-2c680c930ecb" />
 	</flow>
 	<flow name="salesforce-system-post-account" doc:id="d719d30f-9d83-4d41-be71-522d95521ad0" >
-		<http:listener doc:name="Listener POST ACCOUNT" doc:id="45393ec9-0478-40c4-8100-2dc88c2d6414" config-ref="HTTP_Listener_config" path="/cases" />
+		<http:listener doc:name="Listener POST ACCOUNT" doc:id="45393ec9-0478-40c4-8100-2dc88c2d6414" config-ref="HTTP_Listener_config" path="/accounts" />
 		<ee:transform doc:name="Transform Message" doc:id="88c73119-7690-4931-8d48-30cc9491f401" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -115,7 +119,7 @@ payload]]></ee:set-payload>
 		<logger level="INFO" doc:name="Logger" doc:id="0ff3e940-e269-42cc-b225-f7c339113c84" />
 	</flow>
 	<flow name="salesforce-system-post-contact" doc:id="e8cb724a-280b-45df-860c-7163aa7b3cea" >
-		<http:listener doc:name="Listener POST CONTACT" doc:id="f55eb960-c1bf-4b83-a31a-42d11be9752f" config-ref="HTTP_Listener_config" path="/cases" />
+		<http:listener doc:name="Listener POST CONTACT" doc:id="f55eb960-c1bf-4b83-a31a-42d11be9752f" config-ref="HTTP_Listener_config" path="/contacts" />
 		<ee:transform doc:name="Transform Message" doc:id="0ae1f466-d1d1-442c-bbc6-a03ae3eb4c36" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -135,5 +139,176 @@ payload]]></ee:set-payload>
 		</ee:transform>
 		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="61fe89f2-f425-4579-8d20-14bfc8df8174" />
 		<logger level="INFO" doc:name="Logger" doc:id="43bbbd0f-27b0-4756-ab1b-9e0a457be36c" />
+	</flow>
+	<flow name="salesforce-system-patch-case" doc:id="7bdfa54b-583d-4c58-94b7-5a83fb35db5d" >
+		<http:listener doc:name="Listener PATCH CASE" doc:id="89a0d46d-d3e3-4ce5-9dc9-1255b2a53b85" config-ref="HTTP_Listener_config" path="/cases" allowedMethods="PATCH"/>
+		<ee:transform doc:name="Transform Message" doc:id="1deaccb8-8c01-4301-bde6-2fb2a858278e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:upsert objectType="Case" externalIdFieldName="CaseNumber" doc:name="Upsert" doc:id="60023c8e-b659-43d1-9097-b4965e19922d" config-ref="Salesforce_Config"/>
+		<ee:transform doc:name="Transform Message" doc:id="7403ae9a-a59b-4bfb-8619-92c07677dcbc" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="aaba7aae-8250-45eb-b209-4b0366f19b89" />
+		<logger level="INFO" doc:name="Logger" doc:id="fb343d49-fd78-4fa2-8310-555f839ec0a8" />
+	</flow>
+	<flow name="salesforce-system-patch-account" doc:id="c7afed77-77d3-4b1c-9226-a3687bce1813" >
+		<http:listener doc:name="Listener PATCH ACCOUNT" doc:id="f91b2e0a-6fba-4fe7-8d01-b6c2910d8bd3" config-ref="HTTP_Listener_config" path="/accounts" allowedMethods="PATCH" />
+		<ee:transform doc:name="Transform Message" doc:id="931fc501-8b87-4839-93cc-b2bb60b382d1" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:upsert objectType="Account" externalIdFieldName="AccountNumber" doc:name="Upsert" doc:id="c9111ce1-d0c6-4dcb-a5dc-e44939a471fa" config-ref="Salesforce_Config" />
+		<ee:transform doc:name="Transform Message1" doc:id="3c7154eb-05a1-431c-9ce1-dbedf85ba894" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="8a3ddd6c-8f83-4b83-8330-cbdddb37364e" />
+		<logger level="INFO" doc:name="Logger" doc:id="c17c3f72-10a0-4baa-b3a9-91df174a1e88" />
+	</flow>
+	<flow name="salesforce-system-patch-contact" doc:id="82a5fcdb-c4b3-49a5-ab6c-97dc6d0f3c1c" >
+		<http:listener doc:name="Listener PATCH CONTACT" doc:id="e8b6e944-a32b-433a-ba4c-5bbdb47a05bf" config-ref="HTTP_Listener_config" path="/contacts" allowedMethods="PATCH" />
+		<ee:transform doc:name="Transform Message" doc:id="0f01daaf-b6ce-4ffa-8cb2-4057e8a3ddbe" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:upsert objectType="Contact" doc:name="Upsert" doc:id="77ce994b-d5dc-45c0-81ed-dbe5c3f25354" config-ref="Salesforce_Config" externalIdFieldName="Email"/>
+		<ee:transform doc:name="Transform Message1" doc:id="f2c5cc6a-63a5-4243-a51c-4ca7b701f804" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="ef16657d-7975-4748-a98f-41c1bb0d4d18" />
+		<logger level="INFO" doc:name="Logger" doc:id="73f9b8a7-1e60-4e05-9dd7-ac4a65badb4a" />
+	</flow>
+	<flow name="salesforce-system-delete-case" doc:id="d131797d-b7fd-4f7a-bc80-caaf6dbfa918" >
+		<http:listener doc:name="Listener DELETE CASE" doc:id="981c4510-61a7-4be1-93f4-960a4cf19898" config-ref="HTTP_Listener_config" allowedMethods="DELETE" path="/cases/{case_number}/"/>
+		<salesforce:query doc:name="Query" doc:id="504b493e-be9a-4b22-8c39-ea7eda99fb47" config-ref="Salesforce_Config">
+			<salesforce:salesforce-query><![CDATA[select id from case where CaseNumber= ':case_number']]></salesforce:salesforce-query>
+			<salesforce:parameters><![CDATA[#[output application/java
+---
+{
+	case_number : attributes.uriParams.case_number
+}]]]></salesforce:parameters>
+		</salesforce:query>
+		<ee:transform doc:name="Transform Message" doc:id="3234b4d2-cc14-437a-b063-dbab6d74b7fb" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload map {
+	Id: $.Id,
+	Name: $.CaseNumber
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:delete doc:name="Delete" doc:id="32aae145-4dcf-48f7-8910-32e40fff7d74" config-ref="Salesforce_Config">
+			<salesforce:ids ><![CDATA[#[payload.Id]]]></salesforce:ids>
+		</salesforce:delete>
+		<ee:transform doc:name="Transform Message" doc:id="a750edaf-54e9-4bab-97dc-9d26be543c24" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="c6bc94ce-cda4-4bf4-ad44-cb4f5881179b" />
+		<logger level="INFO" doc:name="Logger" doc:id="cbadaf18-da48-4c7c-a11b-fd109eb7f3cf" />
+	</flow>
+	<flow name="salesforce-system-delete-account" doc:id="3ce8c358-4875-4282-8d92-a94801d39096" >
+		<http:listener doc:name="Listener DELETE ACCOUNT" doc:id="3590db14-776f-4fdb-9141-8e4ba4220349" config-ref="HTTP_Listener_config" path="/accounts/{account_number}/" allowedMethods="DELETE" />
+		<salesforce:query doc:name="Query" doc:id="6e86186a-2c46-4a07-8111-5209ae85db1d" config-ref="Salesforce_Config" >
+			<salesforce:salesforce-query ><![CDATA[select id from case where AccountNumber= ':account_number']]></salesforce:salesforce-query>
+			<salesforce:parameters ><![CDATA[#[output application/java
+---
+{
+	account_number : attributes.uriParams.account_number
+}]]]></salesforce:parameters>
+		</salesforce:query>
+		<ee:transform doc:name="Transform Message" doc:id="ee225ac2-8d5a-4e33-9e02-5816e8d1aa2c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload map {
+	Id: $.Id,
+	Name: $.AccountNumber
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:delete doc:name="Delete" doc:id="7d08166d-a86a-4583-90d7-9adc9b830992" config-ref="Salesforce_Config" >
+			<salesforce:ids ><![CDATA[#[payload.Id]]]></salesforce:ids>
+		</salesforce:delete>
+		<ee:transform doc:name="Transform Message1" doc:id="320e10f9-b78e-4d0e-bfd9-51fed9e81e58" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="5fe438c7-97ee-45d4-929b-4454d822cd99" />
+		<logger level="INFO" doc:name="Logger" doc:id="2f19860e-dc42-4013-8f08-c2f3ccee1c89" />
+	</flow>
+	<flow name="salesforce-system-delete-contact" doc:id="b9605dc9-f1b7-44eb-9dde-06f1af47324d" >
+		<http:listener doc:name="Listener DELETE CONTACT" doc:id="934dac50-13fe-45e2-b113-f8ff095e1d5d" config-ref="HTTP_Listener_config" path="/contacts/{email}/" allowedMethods="DELETE" />
+		<salesforce:query doc:name="Query" doc:id="6f1002d4-997b-4adc-a2b0-26f038fa7061" config-ref="Salesforce_Config" >
+			<salesforce:salesforce-query ><![CDATA[select id from contact where Email= ':email']]></salesforce:salesforce-query>
+			<salesforce:parameters ><![CDATA[#[output application/java
+---
+{
+	email : attributes.uriParams.email
+}]]]></salesforce:parameters>
+		</salesforce:query>
+		<ee:transform doc:name="Transform Message" doc:id="9c5e6f3b-aed2-4c3c-8b9c-ab7dd984076d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload map {
+	Id: $.Id,
+	Name: $.Email
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:delete doc:name="Delete" doc:id="5ccb02b5-0725-4454-973f-61eaec1e0fc5" config-ref="Salesforce_Config" >
+			<salesforce:ids ><![CDATA[#[payload.Id]]]></salesforce:ids>
+		</salesforce:delete>
+		<ee:transform doc:name="Transform Message1" doc:id="66be365a-67bb-4fb3-8c92-352975aadb0b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="48642ebb-8366-45a0-82ae-1de5403ff780" />
+		<logger level="INFO" doc:name="Logger" doc:id="ea03daed-4e0c-44a0-bc54-6ffc8db5de6f" />
 	</flow>
 </mule>

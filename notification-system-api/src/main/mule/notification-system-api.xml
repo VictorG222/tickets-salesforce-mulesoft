@@ -21,10 +21,18 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		</slack:slack-auth-connection>
 	</slack:config>
 	<tls:context name="TLS_Context" doc:name="TLS_Context" doc:id="b7fe0937-b020-49ed-8fd9-b4b062ccde62">
-		<tls:key-store type="jks" path="mule.jks" keyPassword="kndnumero222!@#$" password="kndnumero222!@#$" />
+		<tls:key-store type="pkcs12" path="mule.jks" keyPassword="kndnumero222!@#$" password="kndnumero222!@#$" />
 	</tls:context>
 	<flow name="notification-system-sendmail" doc:id="38557156-b9b1-496f-a461-91385e002964" >
 		<http:listener doc:name="Listener MAIL" doc:id="6cba56ad-88ff-4706-8082-c5e07b295fdf" config-ref="HTTP_Listener_config" path="/sendmail"/>
+		<ee:transform doc:name="Transform Message" doc:id="b61259f3-4ca9-47e6-95d2-c46316e5e5bc" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{ "Se registro el siguiente elemento": payload }]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<email:send doc:name="Send" doc:id="f713d963-5c66-4bb2-9fcc-03f604d1cfd9" config-ref="Email_SMTP" fromAddress="galvan.victor.m222@gmail.com" subject="Notification System Salesforce">
 			<email:to-addresses >
 				<email:to-address value="victorgalvan2000@gmail.com" />
