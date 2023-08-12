@@ -47,7 +47,10 @@ output application/json
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
-payload]]></ee:set-payload>
+{
+    "channel": "general",
+    "text": payload
+}]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<slack:create-chatpost-message doc:name="Send Message" doc:id="b346b8c7-905b-423b-8366-2b4af3931d3f" config-ref="Slack_Connector_Config">

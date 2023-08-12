@@ -1,183 +1,246 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:fhirr4schedule-api="http://www.mulesoft.org/schema/mule/fhirr4schedule-api" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
-http://www.mulesoft.org/schema/mule/fhirr4schedule-api http://www.mulesoft.org/schema/mule/fhirr4schedule-api/current/mule-fhirr4schedule-api.xsd
-http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
-http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
-    <apikit:config name="web-experience-api-config" api="web-experience-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
-    <http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="3fcf96c7-1a52-4d45-9891-0c080a34e339" >
-		<http:listener-connection host="0.0.0.0" port="8086" protocol="HTTPS" tlsContext="TLS_Context"/>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="40e494e5-e045-4255-bf59-f1d4cbc4ce88" >
+		<http:listener-connection protocol="HTTPS" host="0.0.0.0" port="8085" tlsContext="TLS_Context"/>
 	</http:listener-config>
-	<tls:context name="TLS_Context" doc:name="TLS Context" doc:id="859f0edf-eb1d-4e1a-90ef-6057ad49a433" >
+	<tls:context name="TLS_Context" doc:name="TLS Context" doc:id="2a1a91bf-bfca-4669-a7b4-45b36a08e05d" >
 		<tls:key-store type="jks" path="mule.jks" keyPassword="kndnumero222!@#$" password="kndnumero222!@#$" />
 	</tls:context>
-	<flow name="web-experience-api-main">
-        <http:listener config-ref="HTTP_Listener_config" path="/api/*">
-            <http:response statusCode="#[vars.httpStatus default 200]">
-                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
-            </http:response>
-            <http:error-response statusCode="#[vars.httpStatus default 500]">
-                <http:body>#[payload]</http:body>
-                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
-            </http:error-response>
-        </http:listener>
-        <apikit:router config-ref="web-experience-api-config" />
-        <error-handler>
-            <on-error-propagate type="APIKIT:BAD_REQUEST">
-                <ee:transform doc:name="Transform Message">
-                    <ee:message>
-                        <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{message: "Bad request"}]]></ee:set-payload>
-                    </ee:message>
-                    <ee:variables>
-                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
-                    </ee:variables>
-                </ee:transform>
-            </on-error-propagate>
-            <on-error-propagate type="APIKIT:NOT_FOUND">
-                <ee:transform doc:name="Transform Message">
-                    <ee:message>
-                        <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{message: "Resource not found"}]]></ee:set-payload>
-                    </ee:message>
-                    <ee:variables>
-                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
-                    </ee:variables>
-                </ee:transform>
-            </on-error-propagate>
-            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
-                <ee:transform doc:name="Transform Message">
-                    <ee:message>
-                        <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{message: "Method not allowed"}]]></ee:set-payload>
-                    </ee:message>
-                    <ee:variables>
-                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
-                    </ee:variables>
-                </ee:transform>
-            </on-error-propagate>
-            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
-                <ee:transform doc:name="Transform Message">
-                    <ee:message>
-                        <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{message: "Not acceptable"}]]></ee:set-payload>
-                    </ee:message>
-                    <ee:variables>
-                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
-                    </ee:variables>
-                </ee:transform>
-            </on-error-propagate>
-            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
-                <ee:transform doc:name="Transform Message">
-                    <ee:message>
-                        <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{message: "Unsupported media type"}]]></ee:set-payload>
-                    </ee:message>
-                    <ee:variables>
-                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
-                    </ee:variables>
-                </ee:transform>
-            </on-error-propagate>
-            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
-                <ee:transform doc:name="Transform Message">
-                    <ee:message>
-                        <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{message: "Not Implemented"}]]></ee:set-payload>
-                    </ee:message>
-                    <ee:variables>
-                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
-                    </ee:variables>
-                </ee:transform>
-            </on-error-propagate>
-        </error-handler>
-    </flow>
-    <flow name="web-experience-api-console">
-        <http:listener config-ref="HTTP_Listener_config" path="/console/*">
-            <http:response statusCode="#[vars.httpStatus default 200]">
-                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
-            </http:response>
-            <http:error-response statusCode="#[vars.httpStatus default 500]">
-                <http:body>#[payload]</http:body>
-                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
-            </http:error-response>
-        </http:listener>
-        <apikit:console config-ref="web-experience-api-config" />
-        <error-handler>
-            <on-error-propagate type="APIKIT:NOT_FOUND">
-                <ee:transform doc:name="Transform Message">
-                    <ee:message>
-                        <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{message: "Resource not found"}]]></ee:set-payload>
-                    </ee:message>
-                    <ee:variables>
-                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
-                    </ee:variables>
-                </ee:transform>
-            </on-error-propagate>
-        </error-handler>
-    </flow>
-    <flow name="post:\casos\(ID):application\csv:web-experience-api-config">
-        <ee:transform doc:name="Transform Message">
-            <ee:variables>
-                <ee:set-variable variableName="ID">attributes.uriParams.'ID'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <ee:transform doc:name="Transform Message">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
+	<http:request-config name="salesforce-process-api" doc:name="HTTP Request configuration" doc:id="0de4274c-ab62-49e3-a181-d1596d129685" >
+		<http:request-connection protocol="HTTPS" host="localhost" port="8084" />
+	</http:request-config>
+	<flow name="movil-experience-get-cases" doc:id="7367a5fc-aeda-40bf-8874-64f05310c48e" >
+		<http:listener doc:name="Listener" doc:id="ea0b88b6-4a49-4e5e-b81a-417c5ae1f47d" config-ref="HTTP_Listener_config" path="/cases" allowedMethods="GET" />
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="19274940-0d58-4e17-800a-8248b7e54a40" />
+		<http:request method="GET" doc:name="Request" doc:id="3d8069b4-1437-4423-bcab-40b31ae05bcb" config-ref="salesforce-process-api" path="/cases" >
+			<http:uri-params ><![CDATA[#[output application/java
 ---
 {
-  message: "Casos enviados"
-}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
-    </flow>
-    <flow name="post:\contactos\(ID):application\csv:web-experience-api-config">
-        <ee:transform doc:name="Transform Message">
-            <ee:variables>
-                <ee:set-variable variableName="ID">attributes.uriParams.'ID'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <ee:transform doc:name="Transform Message">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
+	limit : attributes.uriParameters.limit
+}]]]></http:uri-params>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="5a4a6b91-ec8a-49e2-936a-6d27b7eb9d0f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
-{
-  message: "Contactos enviados"
-}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
-    </flow>
-    <flow name="post:\cuentas\(ID):application\csv:web-experience-api-config">
-        <ee:transform doc:name="Transform Message">
-            <ee:variables>
-                <ee:set-variable variableName="ID">attributes.uriParams.'ID'</ee:set-variable>
-            </ee:variables>
-        </ee:transform>
-        <ee:transform doc:name="Transform Message">
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="movil-experience-get-accounts" doc:id="3b64498e-a095-4b8a-b0d3-d7f44ae08de5" >
+		<http:listener doc:name="Listener" doc:id="9b5b6775-84d6-4e53-827c-4ec31d5525e6" config-ref="HTTP_Listener_config" path="/casos" allowedMethods="GET" />
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="1972863b-4be3-442a-8529-9090e865a798" />
+		<http:request method="GET" doc:name="Request" doc:id="469f23c2-82b3-4fee-bef5-9714f93a6d84" config-ref="salesforce-process-api" path="/accounts" >
+			<http:uri-params ><![CDATA[#[output application/java
 ---
 {
-  message: "Cuentas enviadas"
-}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
-    </flow>
+	limit : attributes.uriParameters.limit
+}]]]></http:uri-params>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="afa0a793-8431-488f-973d-f94fd27b6899" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="movil-experience-get-contacts" doc:id="a8985b03-5169-4be4-87c1-2adf34f51516" >
+		<http:listener doc:name="Listener" doc:id="354bdf17-cc1a-4920-9673-937772104022" config-ref="HTTP_Listener_config" path="/casos" allowedMethods="GET" />
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="774e1e68-3c0f-4670-a10f-2c9626f8a373" />
+		<http:request method="GET" doc:name="Request" doc:id="88778e92-4590-42d7-b5df-1e452c2a2df0" config-ref="salesforce-process-api" path="/contacts" >
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	limit : attributes.uriParameters.limit
+}]]]></http:uri-params>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="ffb3cff6-922b-4fe3-ab07-b7953bdd8ab6" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="movil-experience-post-case" doc:id="981f46bf-017d-4523-927c-a59dc70eef84" >
+		<http:listener doc:name="Listener" doc:id="a34dcf0d-bc7f-498a-9da3-6d1b6be8fcae" config-ref="HTTP_Listener_config" path="/cases/{id}" allowedMethods="POST" />
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="79b5337b-efad-417c-8d3c-bd53d684a0fc" />
+		<http:request method="POST" doc:name="Request" doc:id="2497324c-95f4-4ea9-81d3-c425d09614b4" config-ref="salesforce-process-api" path="/cases" >
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	id : attributes.uriParameters.id
+}]]]></http:uri-params>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="6d0f7da5-bef4-46ed-b136-5ca2f6a227fa" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="movil-experience-post-account" doc:id="71266f93-9657-45e1-9208-0f90f461ffcd" >
+		<http:listener doc:name="Listener" doc:id="8108661a-386e-48ab-afbc-ce7064a03ff2" config-ref="HTTP_Listener_config" path="/accounts/{id}" allowedMethods="POST" />
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="1e5bb23c-2af7-4114-b4de-8dc48826fa31" />
+		<http:request method="POST" doc:name="Request" doc:id="134fba84-a5df-43da-a736-71a1a0a9ff95" config-ref="salesforce-process-api" path="/accounts" >
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	id : attributes.uriParameters.id
+}]]]></http:uri-params>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="24521da5-b68e-4b9b-be48-0f042ba0f3bb" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="movil-experience-post-contact" doc:id="69e12b28-10d9-4173-ac81-72fb3f3137c4" >
+		<http:listener doc:name="Listener" doc:id="d4bf69e5-2d00-4c87-8cc8-1c0271748161" config-ref="HTTP_Listener_config" path="/contacts/{id}" allowedMethods="POST" />
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="2b8d4b24-ec2f-4cc3-9dc3-70ae5a45c95f" />
+		<http:request method="POST" doc:name="Request" doc:id="61dc88db-7a18-4c6e-8b25-649c50db4c3a" config-ref="salesforce-process-api" path="/contacts" >
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	id : attributes.uriParameters.id
+}]]]></http:uri-params>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="ef02031f-010c-4227-8c08-1c89b28745e5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="movil-experience-patch-case" doc:id="a0fa41dd-9596-45e7-8cb9-70a93e321d22" >
+		<http:listener doc:name="Listener" doc:id="0dfcd9e0-7ffe-4d2f-a1ea-5bfb4c55210c" config-ref="HTTP_Listener_config" path="/cases/{id}" allowedMethods="PATCH" />
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="3fe0e77c-6c7c-4593-b4a0-f60f6378a933" />
+		<http:request method="PATCH" doc:name="Request" doc:id="4c372e82-5676-4b4d-801b-1480c390ce15" config-ref="salesforce-process-api" path="/cases" >
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	id : attributes.uriParameters.id
+}]]]></http:uri-params>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="d2d3f6e5-11c0-4ecd-94d7-26bc8e88a498" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="movil-experience-patch-account" doc:id="23eb5201-a5a6-4c12-b9d6-14d9feec2f07" >
+		<http:listener doc:name="Listener" doc:id="a1f59385-d3c9-497b-98c9-4d86cd4417b8" config-ref="HTTP_Listener_config" path="/accounts/{id}" allowedMethods="PATCH" />
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="77e1298f-1391-42b8-bf5e-c2305b09b686" />
+		<http:request method="PATCH" doc:name="Request" doc:id="85c120e6-5367-4474-bc27-1702e2630b26" config-ref="salesforce-process-api" path="/accounts" >
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	id : attributes.uriParameters.id
+}]]]></http:uri-params>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="6e499bd9-bd31-4995-b15d-5fda3e87f142" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="movil-experience-patch-contact" doc:id="34957c1e-11bb-4c0e-a823-e6a544d3d013" >
+		<http:listener doc:name="Listener" doc:id="446a2bf4-bfe1-47db-ad60-0bcd645b71c7" config-ref="HTTP_Listener_config" path="/contacs/{id}" allowedMethods="PATCH" />
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="9868e001-0e21-43e2-ace2-32f2bb6b9d5c" />
+		<http:request method="PATCH" doc:name="Request" doc:id="33215ff9-4b4c-4b62-b02c-c15b43be36e6" config-ref="salesforce-process-api" path="/contacts" >
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	id : attributes.uriParameters.id
+}]]]></http:uri-params>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="73a96514-2d22-4247-83ff-d0d4f10a1f82" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="movil-experience-delete-case" doc:id="538a4729-5967-4d9d-8101-d99e44296e13" >
+		<http:listener doc:name="Listener" doc:id="69163025-e9df-44f4-bd8d-af4384931153" config-ref="HTTP_Listener_config" path="/cases/{id}" allowedMethods="DELETE" />
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="e2116ab4-5195-4963-b07f-4e1a8c53c820" />
+		<http:request method="DELETE" doc:name="Request" doc:id="b1f041ef-948a-4516-95da-2026f519db60" config-ref="salesforce-process-api" path="/cases" >
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	id : attributes.uriParameters.id
+}]]]></http:uri-params>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="9ce235b7-947d-4e95-91ca-e7571962389f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="movil-experience-delete-account" doc:id="6544f544-f579-4401-93cb-99df898d78f5" >
+		<http:listener doc:name="Listener" doc:id="81304a61-88e2-4fc7-ab69-7687f641f8fa" config-ref="HTTP_Listener_config" path="/accounts/{id}" allowedMethods="DELETE" />
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="bf7488ba-96b7-4e69-9825-dea3468ab06d" />
+		<http:request method="DELETE" doc:name="Request" doc:id="1dc3d1ae-1652-481b-b09b-29018f0ccbf8" config-ref="salesforce-process-api" path="/accounts" >
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	id : attributes.uriParameters.id
+}]]]></http:uri-params>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="4b59958e-2d32-42a1-9e39-90c51408bf9f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="movil-experience-delete-contact" doc:id="ca64cff2-074f-4cb5-8dae-898157fcb8a6" >
+		<http:listener doc:name="Listener" doc:id="bf8e5b19-4871-4024-911e-a648d5e581ed" config-ref="HTTP_Listener_config" path="/contacts/{id}" allowedMethods="DELETE" />
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="b2ac736d-e444-4a7f-bfce-29ed66191efb" />
+		<http:request method="DELETE" doc:name="Request" doc:id="96c1ffb1-1098-42e3-94cd-722db0e29775" config-ref="salesforce-process-api" path="/contacts" >
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	id : attributes.uriParameters.id
+}]]]></http:uri-params>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="33aec274-fd0a-463e-90c0-62633caa99f7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
 </mule>

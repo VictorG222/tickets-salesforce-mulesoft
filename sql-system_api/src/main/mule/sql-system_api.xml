@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:oauth="http://www.mulesoft.org/schema/mule/oauth"
-	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
-	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:oauth="http://www.mulesoft.org/schema/mule/oauth"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 http://www.mulesoft.org/schema/mule/oauth http://www.mulesoft.org/schema/mule/oauth/current/mule-oauth.xsd
-http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
 	<http:listener-config name="get-SQL" doc:name="HTTP Listener config" doc:id="15dc47a3-991d-45bf-9f66-31d7ba4c3bab" >
-		<http:listener-connection host="localhost" port="8081" />
+		<http:listener-connection host="localhost" port="8081" protocol="HTTPS" tlsContext="TLS_Context"/>
 	</http:listener-config>
 	<db:config name="Database_Config" doc:name="Database Config" doc:id="bfcefd4f-6446-4039-af85-eb2316459a02" >
 		<db:my-sql-connection host="${db.host}" port="${db.port}" user="${db.user}" database="${db.database}" password="${db.password}"/>
@@ -18,10 +19,13 @@ http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/sc
 	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="9c4044e3-90c1-4be6-81e5-a602e01e2b43" file="env-properties.yaml" key="keysecrect" >
 		<secure-properties:encrypt algorithm="Blowfish" />
 	</secure-properties:config>
+	<tls:context name="TLS_Context" doc:name="TLS Context" doc:id="e0299adc-b915-4723-a6e0-b7f02f9b0645" >
+		<tls:key-store type="jks" path="mule.jks" keyPassword="kndnumero222!@#$" password="kndnumero222!@#$" />
+	</tls:context>
 	<flow name="sql-system_get_cases" doc:id="ed15f01d-1f70-4fbe-86ee-a9b5ec31abd1" >
 		<http:listener doc:name="Listener CASE GET" doc:id="efb8ffac-dfd7-4a7c-8ea5-dcafb3582de5" config-ref="get-SQL" path="/cases" allowedMethods="GET"/>
-		<db:select doc:name="Select cases" doc:id="bbc73a36-1fd0-4722-8ac3-b68cde2c1ba3" config-ref="Database_Config">
-			<db:sql><![CDATA[SELECT * FROM tickets;]]></db:sql>
+		<db:select doc:name="Select" doc:id="b7a9f780-f219-42a4-b3ef-e49d1fc1349f" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT * FROM tickets;]]></db:sql>
 		</db:select>
 		<ee:transform doc:name="Transform Message" doc:id="c4082337-a925-4557-b079-19fd3d750c96">
 			<ee:message>
