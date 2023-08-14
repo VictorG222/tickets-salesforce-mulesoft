@@ -3,13 +3,13 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>e6695e55-4146-41bf-87b7-64b4764744a0</groupId>
-	<artifactId>notification-system-api</artifactId>
+	<artifactId>sql-system-api</artifactId>
 	<version>1.0.0</version>
 	<packaging>mule-application</packaging>
 
-	<name>notification-system-api</name>
+	<name>sql-system-api</name>
 
-	<description>system layer from tickets-salesforce-mulesoft</description>
+	<description/>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -33,6 +33,14 @@
 				<artifactId>mule-maven-plugin</artifactId>
 				<version>${mule.maven.plugin.version}</version>
 				<extensions>true</extensions>
+				<configuration>
+					<sharedLibraries>
+						<sharedLibrary>
+							<groupId>mysql</groupId>
+							<artifactId>mysql-connector-java</artifactId>
+						</sharedLibrary>
+					</sharedLibraries>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
@@ -52,15 +60,20 @@
 		</dependency>
 		<dependency>
 			<groupId>org.mule.connectors</groupId>
-			<artifactId>mule-email-connector</artifactId>
-			<version>1.7.1</version>
+			<artifactId>mule-db-connector</artifactId>
+			<version>1.14.3</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
-			<groupId>com.mulesoft.connectors</groupId>
-			<artifactId>mule4-slack-connector</artifactId>
-			<version>1.0.16</version>
+			<groupId>com.mulesoft.modules</groupId>
+			<artifactId>mule-secure-configuration-property-module</artifactId>
+			<version>1.2.5</version>
 			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>8.0.30</version>
 		</dependency>
 	</dependencies>
 

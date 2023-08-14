@@ -16,7 +16,9 @@ http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/
 		<http:request-connection protocol="HTTPS" host="localhost" port="8084" />
 	</http:request-config>
 	<flow name="movil-experience-get-cases" doc:id="3a38c911-2afd-4cac-ac45-62b3a9150ee9" >
-		<http:listener doc:name="Listener" doc:id="5804ecda-ba3c-42ad-928c-c6136839e65a" config-ref="HTTP_Listener_config" path="/cases" allowedMethods="GET"/>
+		<http:listener doc:name="Listener" doc:id="5804ecda-ba3c-42ad-928c-c6136839e65a" config-ref="HTTP_Listener_config" path="/cases" allowedMethods="GET">
+			<http:error-response statusCode="500" />
+		</http:listener>
 		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="c7efe429-739a-4717-a73c-7d351aeb0b48" />
 		<http:request method="GET" doc:name="Request" doc:id="991874df-7cba-4eb7-b965-15452b6e8ad0" config-ref="salesforce-process-api" path="/cases">
 			<http:uri-params ><![CDATA[#[output application/java
@@ -35,7 +37,9 @@ payload]]></ee:set-payload>
 		</ee:transform>
 	</flow>
 	<flow name="movil-experience-get-accounts" doc:id="a02e1861-a8a2-4bc1-ba32-48144f47bd6c" >
-		<http:listener doc:name="Listener" doc:id="ccbaeb10-b571-494f-8acf-3955dbd9fdac" config-ref="HTTP_Listener_config" path="/casos" allowedMethods="GET" />
+		<http:listener doc:name="Listener" doc:id="ccbaeb10-b571-494f-8acf-3955dbd9fdac" config-ref="HTTP_Listener_config" path="/accounts" allowedMethods="GET" >
+			<http:error-response statusCode="500" />
+		</http:listener>
 		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="8925a467-68c9-4fba-820d-e85a38ce03d2" />
 		<http:request method="GET" doc:name="Request" doc:id="13f22cff-d825-47b3-a058-c94725100fe8" config-ref="salesforce-process-api" path="/accounts">
 			<http:uri-params ><![CDATA[#[output application/java
@@ -54,7 +58,9 @@ payload]]></ee:set-payload>
 		</ee:transform>
 	</flow>
 	<flow name="movil-experience-get-contacts" doc:id="9c41773c-facf-4452-8f34-7c7dd6a6a26e" >
-		<http:listener doc:name="Listener" doc:id="a0ff3373-5674-4b2c-a945-ced06ff8ddb6" config-ref="HTTP_Listener_config" path="/casos" allowedMethods="GET" />
+		<http:listener doc:name="Listener" doc:id="a0ff3373-5674-4b2c-a945-ced06ff8ddb6" config-ref="HTTP_Listener_config" path="/contacts" allowedMethods="GET" >
+			<http:error-response statusCode="500" />
+		</http:listener>
 		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="dd14b9cd-77e2-4039-9fbc-6e36810aaae3" />
 		<http:request method="GET" doc:name="Request" doc:id="e3ee2338-a37a-43f7-b379-74cca2a80494" path="/contacts" config-ref="salesforce-process-api">
 			<http:uri-params ><![CDATA[#[output application/java
@@ -73,7 +79,9 @@ payload]]></ee:set-payload>
 		</ee:transform>
 	</flow>
 	<flow name="movil-experience-post-case" doc:id="f511b58e-8e0f-4140-884b-3de2fb845181" >
-		<http:listener doc:name="Listener" doc:id="1955a199-d1d4-479b-a628-081f09b37020" config-ref="HTTP_Listener_config" path="/cases/{id}" allowedMethods="POST" />
+		<http:listener doc:name="Listener" doc:id="1955a199-d1d4-479b-a628-081f09b37020" config-ref="HTTP_Listener_config" path="/cases/{id}" allowedMethods="POST" >
+			<http:error-response statusCode="500" />
+		</http:listener>
 		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="ff789cf1-21a7-4516-a11b-30eca0b8a753" />
 		<http:request method="POST" doc:name="Request" doc:id="2c8b31df-5ac9-4568-95a4-3015d31d3214" config-ref="salesforce-process-api" path="/cases" >
 			<http:uri-params ><![CDATA[#[output application/java
@@ -92,7 +100,9 @@ payload]]></ee:set-payload>
 		</ee:transform>
 	</flow>
 	<flow name="movil-experience-post-account" doc:id="1b5c7991-3c75-4695-89fb-b76673f44819" >
-		<http:listener doc:name="Listener" doc:id="7242b549-8f27-4c5f-aeee-28e85a72af47" config-ref="HTTP_Listener_config" path="/accounts/{id}" allowedMethods="POST" />
+		<http:listener doc:name="Listener" doc:id="7242b549-8f27-4c5f-aeee-28e85a72af47" config-ref="HTTP_Listener_config" path="/accounts/{id}" allowedMethods="POST" >
+			<http:error-response statusCode="500" />
+		</http:listener>
 		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="fd35258a-6b39-4af4-ab4e-d9ac049e9371" />
 		<http:request method="POST" doc:name="Request" doc:id="efcedfc2-e91c-4a35-b185-d375afc5d079" config-ref="salesforce-process-api" path="/accounts" >
 			<http:uri-params ><![CDATA[#[output application/java
@@ -111,7 +121,9 @@ payload]]></ee:set-payload>
 		</ee:transform>
 	</flow>
 	<flow name="movil-experience-post-contact" doc:id="a6f845cd-e0e7-4e21-9607-3333386b5a2f" >
-		<http:listener doc:name="Listener" doc:id="75932505-1e2c-42ca-a688-aa3c4c3ec193" config-ref="HTTP_Listener_config" path="/contacts/{id}" allowedMethods="POST" />
+		<http:listener doc:name="Listener" doc:id="75932505-1e2c-42ca-a688-aa3c4c3ec193" config-ref="HTTP_Listener_config" path="/contacts/{id}" allowedMethods="POST" >
+			<http:error-response statusCode="500" />
+		</http:listener>
 		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="4324e947-2fc9-49e5-bd06-4a8fd975b1b8" />
 		<http:request method="POST" doc:name="Request" doc:id="6cdd596e-07bd-4618-b485-846f1b05021c" config-ref="salesforce-process-api" path="/contacts" >
 			<http:uri-params ><![CDATA[#[output application/java
@@ -130,7 +142,9 @@ payload]]></ee:set-payload>
 		</ee:transform>
 	</flow>
 	<flow name="movil-experience-patch-case" doc:id="b1cb2411-43f2-41e0-bb8f-0985bab41680" >
-		<http:listener doc:name="Listener" doc:id="bfd261df-a3db-4f65-b2ab-1332ec3a9c96" config-ref="HTTP_Listener_config" path="/cases/{id}" allowedMethods="PATCH" />
+		<http:listener doc:name="Listener" doc:id="bfd261df-a3db-4f65-b2ab-1332ec3a9c96" config-ref="HTTP_Listener_config" path="/cases/{id}" allowedMethods="PATCH" >
+			<http:response statusCode="500" />
+		</http:listener>
 		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="c4aa545d-7e93-43d7-a26d-8fa226e41747" />
 		<http:request method="PATCH" doc:name="Request" doc:id="701be600-9d1a-47e9-9599-6e562bc18d34" config-ref="salesforce-process-api" path="/cases" >
 			<http:uri-params ><![CDATA[#[output application/java
@@ -149,7 +163,9 @@ payload]]></ee:set-payload>
 		</ee:transform>
 	</flow>
 	<flow name="movil-experience-patch-account" doc:id="7ebb2b4a-5a47-4a95-8afb-6420c0c0cee2" >
-		<http:listener doc:name="Listener" doc:id="5d8c18c6-62cb-4766-bc57-ddedbf07f471" config-ref="HTTP_Listener_config" path="/accounts/{id}" allowedMethods="PATCH" />
+		<http:listener doc:name="Listener" doc:id="5d8c18c6-62cb-4766-bc57-ddedbf07f471" config-ref="HTTP_Listener_config" path="/accounts/{id}" allowedMethods="PATCH" >
+			<http:response statusCode="500" />
+		</http:listener>
 		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="e1dc3539-063a-4dd3-87e0-f3fe11580781" />
 		<http:request method="PATCH" doc:name="Request" doc:id="e80cd95c-0249-4255-8358-b1a7d51bd9eb" config-ref="salesforce-process-api" path="/accounts" >
 			<http:uri-params ><![CDATA[#[output application/java
@@ -168,7 +184,9 @@ payload]]></ee:set-payload>
 		</ee:transform>
 	</flow>
 	<flow name="movil-experience-patch-contact" doc:id="a39db76c-8f2f-4434-b63f-5b9f71e35785" >
-		<http:listener doc:name="Listener" doc:id="a7ac663f-706f-49f6-9195-92c83efc3a6a" config-ref="HTTP_Listener_config" path="/contacs/{id}" allowedMethods="PATCH" />
+		<http:listener doc:name="Listener" doc:id="a7ac663f-706f-49f6-9195-92c83efc3a6a" config-ref="HTTP_Listener_config" path="/contacs/{id}" allowedMethods="PATCH" >
+			<http:response statusCode="500" />
+		</http:listener>
 		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="968041f7-1532-4df6-b06a-14b691eb781c" />
 		<http:request method="PATCH" doc:name="Request" doc:id="05c1fc59-1e62-4c1c-8857-a2903a18578f" config-ref="salesforce-process-api" path="/contacts" >
 			<http:uri-params ><![CDATA[#[output application/java
@@ -187,7 +205,9 @@ payload]]></ee:set-payload>
 		</ee:transform>
 	</flow>
 	<flow name="movil-experience-delete-case" doc:id="d72557f6-3aa5-4fa2-bb01-d0f0f3977aa8" >
-		<http:listener doc:name="Listener" doc:id="c4624019-8e2d-43f0-b6cf-657373d47ef3" config-ref="HTTP_Listener_config" path="/cases/{id}" allowedMethods="DELETE" />
+		<http:listener doc:name="Listener" doc:id="c4624019-8e2d-43f0-b6cf-657373d47ef3" config-ref="HTTP_Listener_config" path="/cases/{id}" allowedMethods="DELETE" >
+			<http:response statusCode="500" />
+		</http:listener>
 		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="9dc84097-f76a-4502-ab61-18b808e74f24" />
 		<http:request method="DELETE" doc:name="Request" doc:id="d3260092-ac68-4878-bb53-759b119e5098" config-ref="salesforce-process-api" path="/cases" >
 			<http:uri-params ><![CDATA[#[output application/java
@@ -206,7 +226,9 @@ payload]]></ee:set-payload>
 		</ee:transform>
 	</flow>
 	<flow name="movil-experience-delete-account" doc:id="533934e3-f839-44a0-9331-8541c431edd6" >
-		<http:listener doc:name="Listener" doc:id="8ff3f99b-efd7-4e95-a281-44f06b964f32" config-ref="HTTP_Listener_config" path="/accounts/{id}" allowedMethods="DELETE" />
+		<http:listener doc:name="Listener" doc:id="8ff3f99b-efd7-4e95-a281-44f06b964f32" config-ref="HTTP_Listener_config" path="/accounts/{id}" allowedMethods="DELETE" >
+			<http:response statusCode="500" />
+		</http:listener>
 		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="cef3d830-4b51-4d2a-86ce-4c9255a4cd22" />
 		<http:request method="DELETE" doc:name="Request" doc:id="e86f55c7-76d0-4993-a26d-8cf43d7a77ac" config-ref="salesforce-process-api" path="/accounts" >
 			<http:uri-params ><![CDATA[#[output application/java
@@ -225,7 +247,10 @@ payload]]></ee:set-payload>
 		</ee:transform>
 	</flow>
 	<flow name="movil-experience-delete-contact" doc:id="74884ce3-2cea-4708-a19f-11417e968ebc" >
-		<http:listener doc:name="Listener" doc:id="813dd38f-777b-4f47-bc45-92c1dc6f955d" config-ref="HTTP_Listener_config" path="/contacts/{id}" allowedMethods="DELETE" />
+		<http:listener doc:name="Listener" doc:id="813dd38f-777b-4f47-bc45-92c1dc6f955d" config-ref="HTTP_Listener_config" path="/contacts/{id}" allowedMethods="DELETE" >
+			<http:response statusCode="500" />
+			<http:error-response statusCode="500" />
+		</http:listener>
 		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="ba8ddc89-20e7-4f31-a1bd-f3c8a5da145f" />
 		<http:request method="DELETE" doc:name="Request" doc:id="23744631-1481-42a8-a135-f2178ab5d739" config-ref="salesforce-process-api" path="/contacts" >
 			<http:uri-params ><![CDATA[#[output application/java

@@ -7,7 +7,7 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="40e494e5-e045-4255-bf59-f1d4cbc4ce88" >
-		<http:listener-connection protocol="HTTPS" host="0.0.0.0" port="8085" tlsContext="TLS_Context"/>
+		<http:listener-connection protocol="HTTPS" host="0.0.0.0" port="8086" tlsContext="TLS_Context"/>
 	</http:listener-config>
 	<tls:context name="TLS_Context" doc:name="TLS Context" doc:id="2a1a91bf-bfca-4669-a7b4-45b36a08e05d" >
 		<tls:key-store type="jks" path="mule.jks" keyPassword="kndnumero222!@#$" password="kndnumero222!@#$" />
@@ -35,7 +35,7 @@ payload]]></ee:set-payload>
 		</ee:transform>
 	</flow>
 	<flow name="movil-experience-get-accounts" doc:id="3b64498e-a095-4b8a-b0d3-d7f44ae08de5" >
-		<http:listener doc:name="Listener" doc:id="9b5b6775-84d6-4e53-827c-4ec31d5525e6" config-ref="HTTP_Listener_config" path="/casos" allowedMethods="GET" />
+		<http:listener doc:name="Listener" doc:id="9b5b6775-84d6-4e53-827c-4ec31d5525e6" config-ref="HTTP_Listener_config" path="/accounts" allowedMethods="GET" />
 		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="1972863b-4be3-442a-8529-9090e865a798" />
 		<http:request method="GET" doc:name="Request" doc:id="469f23c2-82b3-4fee-bef5-9714f93a6d84" config-ref="salesforce-process-api" path="/accounts" >
 			<http:uri-params ><![CDATA[#[output application/java
@@ -54,7 +54,7 @@ payload]]></ee:set-payload>
 		</ee:transform>
 	</flow>
 	<flow name="movil-experience-get-contacts" doc:id="a8985b03-5169-4be4-87c1-2adf34f51516" >
-		<http:listener doc:name="Listener" doc:id="354bdf17-cc1a-4920-9673-937772104022" config-ref="HTTP_Listener_config" path="/casos" allowedMethods="GET" />
+		<http:listener doc:name="Listener" doc:id="354bdf17-cc1a-4920-9673-937772104022" config-ref="HTTP_Listener_config" path="/contacts" allowedMethods="GET" />
 		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="774e1e68-3c0f-4670-a10f-2c9626f8a373" />
 		<http:request method="GET" doc:name="Request" doc:id="88778e92-4590-42d7-b5df-1e452c2a2df0" config-ref="salesforce-process-api" path="/contacts" >
 			<http:uri-params ><![CDATA[#[output application/java

@@ -11,7 +11,7 @@ http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/ba
 http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
 	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="31b0af65-70d4-4ef9-94dd-c55ed437d47d" >
-		<http:listener-connection host="0.0.0.0" port="8084" />
+		<http:listener-connection host="0.0.0.0" port="8084" protocol="HTTPS" tlsContext="TLS_Context"/>
 	</http:listener-config>
 	<http:request-config name="salesforce-system-api" doc:name="HTTP Request configuration" doc:id="7e8519dc-d882-46d2-b165-d3ef8abd01e2" >
 		<http:request-connection protocol="HTTPS" host="localhost" port="8083" />
@@ -31,7 +31,7 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
 				<fixed-frequency startDelay="100" timeUnit="DAYS"/>
 			</scheduling-strategy>
 		</scheduler>
-		<file:read doc:name="Read" doc:id="fb9cee43-c224-4607-9a72-6f1c3254571a" path="C:\Users\acer\Desktop\Capptus Asignación Mulesoft\cases.csv"/>
+		<file:read doc:name="CSV" doc:id="fb9cee43-c224-4607-9a72-6f1c3254571a" path="C:\Users\acer\Desktop\Capptus Asignación Mulesoft\cases.csv"/>
 		<ee:transform doc:name="Transform Message" doc:id="6e52b913-6a65-4296-b574-d8b0f02bd959" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -53,6 +53,7 @@ payload]]></ee:set-payload>
 						</ee:message>
 					</ee:transform>
 					<batch:aggregator doc:name="Batch Aggregator" doc:id="78d58481-c83a-4ee9-ba54-154bf1f3a411" size="200">
+						<http:request method="POST" doc:name="Request" doc:id="df2c3554-8abb-4e42-afd0-80d2b11ab884" config-ref="salesforce-system-api" path="/cases"/>
 						<logger level="INFO" doc:name="Logger" doc:id="6b8af954-9a92-4b76-bc98-dd5e7cecd9ec" />
 					</batch:aggregator>
 				</batch:step>
@@ -63,7 +64,8 @@ payload]]></ee:set-payload>
 		</batch:job>
 	</flow>
 	<flow name="salesforce-process-slack" doc:id="ac692637-d223-4c71-bddd-dc6be0cb0f90">
-		<http:request method="POST" doc:name="Request" doc:id="21c66ed5-0823-4fa8-b2c8-d840aad6c83f" config-ref="notification-system-api" path="/slack-notification" />
+		<http:listener doc:name="Listener" doc:id="c69e0276-1015-45a9-9912-7f283dc748d0" config-ref="HTTP_Listener_config" path="/slack" allowedMethods="POST"/>
+		<http:request method="POST" doc:name="SLACK" doc:id="21c66ed5-0823-4fa8-b2c8-d840aad6c83f" config-ref="notification-system-api" path="/slack-notification" />
 		<ee:transform doc:name="Transform Message" doc:id="25dc159d-e07c-4941-a7fe-45526efe85b0">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
@@ -75,7 +77,8 @@ payload]]></ee:set-payload>
 		<logger level="INFO" doc:name="Logger" doc:id="18d8896a-9b28-4ec9-afc5-02342d5eab0e" />
 	</flow>
 	<flow name="salesforce-process-mail" doc:id="75121a43-cfea-4bc5-9925-18356b267cb7">
-		<http:request method="POST" doc:name="Request" doc:id="245da743-4bfe-426a-a6a7-cc2bbf8182fa" config-ref="notification-system-api" path="/sendmail" />
+		<http:listener doc:name="POST" doc:id="a894a31e-18c9-4986-add2-a4a85de5f7d3" config-ref="HTTP_Listener_config" path="/mail" allowedMethods="POST"/>
+		<http:request method="POST" doc:name="MAIL" doc:id="245da743-4bfe-426a-a6a7-cc2bbf8182fa" config-ref="notification-system-api" path="/sendmail" />
 		<ee:transform doc:name="Transform Message" doc:id="e52e0d4b-7827-425a-aa64-e7aacb98782c">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
@@ -84,12 +87,18 @@ output application/json
 payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<flow-ref doc:name="Flow Reference" doc:id="573bdf14-f9f7-4905-8973-8e4f39dbc2fd" name="salesforce-process-mail"/>
+		<flow-ref doc:name="SLACK" doc:id="573bdf14-f9f7-4905-8973-8e4f39dbc2fd" name="salesforce-process-slack"/>
 		<logger level="INFO" doc:name="Logger" doc:id="dbbf5653-0bb0-40fa-982a-633c937be72a" />
 	</flow>
 	<flow name="salesforce-process-get-cases-salesforce" doc:id="b7d9bcde-4db8-43ee-b2d3-2f59a57b5336" >
 		<http:listener doc:name="Listener GET CASE" doc:id="24e0bab0-556f-4cd4-ad91-34df5aba341f" config-ref="HTTP_Listener_config" allowedMethods="GET" path="/cases"/>
-		<http:request method="GET" doc:name="Request" doc:id="f087c685-e74c-4c9d-9832-ec363bd9f840" config-ref="salesforce-system-api" path="/cases"/>
+		<http:request method="GET" doc:name="SALESFORCE" doc:id="f087c685-e74c-4c9d-9832-ec363bd9f840" config-ref="salesforce-system-api" path="/cases/">
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	limit : attributes.uriParameters.limit
+}]]]></http:uri-params>
+		</http:request>
 		<ee:transform doc:name="Transform Message" doc:id="8beaa16b-2442-4a9a-9110-0fb37df06f68" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -99,12 +108,10 @@ payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<logger level="INFO" doc:name="Logger" doc:id="6327c746-f71f-4601-888d-14fa787d9a7d" message="#[payload]"/>
-		<flow-ref doc:name="Flow Reference" doc:id="9b0a6223-0e8c-4c18-bc4c-d9b473fac57a" name="salesforce-process-mail"/>
-		<logger level="INFO" doc:name="Logger" doc:id="ce1201d1-91c3-4e18-b362-45b4094761ad" />
 	</flow>
 	<flow name="salesforce-process-post-case-salesforce" doc:id="6d3fdeed-04e7-4b4a-a28a-bf85c80329c7" >
-		<http:listener doc:name="Listener POST CASE" doc:id="51d87faa-b48b-4163-a5aa-e35051edbc57" config-ref="HTTP_Listener_config" path="/cases" allowedMethods="POST"/>
-		<http:request method="POST" doc:name="Request" doc:id="c4f27a1f-ea39-432f-b035-475d05f0f038" config-ref="salesforce-system-api" path="/cases" />
+		<http:listener doc:name="POST" doc:id="51d87faa-b48b-4163-a5aa-e35051edbc57" config-ref="HTTP_Listener_config" path="/cases" allowedMethods="POST"/>
+		<http:request method="POST" doc:name="SALESFORCE" doc:id="c4f27a1f-ea39-432f-b035-475d05f0f038" config-ref="salesforce-system-api" path="/cases" />
 		<ee:transform doc:name="Transform Message" doc:id="6d874a0a-b4fc-4ae0-aa8a-614def63a3f3" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -114,12 +121,12 @@ payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<logger level="INFO" doc:name="Logger" doc:id="f2c94d5d-6d1b-40b5-96b1-0db64a7f8846" message="#[payload]" />
-		<flow-ref doc:name="Flow Reference" doc:id="f0af90a0-b29f-47dd-a800-c68260aae618" name="salesforce-process-mail" />
-		<logger level="INFO" doc:name="Logger1" doc:id="393604b0-0dcd-4e68-b1da-558c9cc747a8" />
+		<flow-ref doc:name="MAIL" doc:id="f0af90a0-b29f-47dd-a800-c68260aae618" name="salesforce-process-mail" />
+		<flow-ref doc:name="SQL" doc:id="c8cd8c7f-67f5-486f-a2f5-34fcaad2e44f" name="salesforce-process-insert-sql" />
 	</flow>
 	<flow name="salesforce-process-patch-case-salesforce" doc:id="a4257a59-ea5b-4b16-a0c5-1b3041acf72c" >
-		<http:listener doc:name="Listener PATCH CASE" doc:id="ae44af8c-c9f2-4417-9085-a96cd3e5ec59" config-ref="HTTP_Listener_config" path="/cases/{id}"/>
-		<http:request method="PATCH" doc:name="Request" doc:id="0c500e56-cee1-461d-9317-df28a13f83cb" config-ref="salesforce-system-api" path="/cases" >
+		<http:listener doc:name="PATCH" doc:id="ae44af8c-c9f2-4417-9085-a96cd3e5ec59" config-ref="HTTP_Listener_config" path="/cases/{id}"/>
+		<http:request method="PATCH" doc:name="SALESFORCE" doc:id="0c500e56-cee1-461d-9317-df28a13f83cb" config-ref="salesforce-system-api" path="/cases" >
 			<http:uri-params ><![CDATA[#[output application/java
 ---
 {
@@ -135,12 +142,12 @@ payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<logger level="INFO" doc:name="Logger" doc:id="c6b41dc4-9903-429a-abc4-ded02fbc4756" message="#[payload]" />
-		<flow-ref doc:name="Flow Reference" doc:id="e3125095-24fd-451e-a38a-2166e0cf6545" name="salesforce-process-mail" />
-		<logger level="INFO" doc:name="Logger1" doc:id="b9a8f5a4-16d7-490b-a2e8-31e484067bb4" />
+		<flow-ref doc:name="MAIL" doc:id="e3125095-24fd-451e-a38a-2166e0cf6545" name="salesforce-process-mail" />
+		<flow-ref doc:name="SQL" doc:id="df463734-8669-437c-a6d2-73f0d50de30f" name="salesforce-process-insert-sql" />
 	</flow>
 	<flow name="salesforce-process-delete-case-salesforce" doc:id="dfd94c70-a1bd-47ad-8ac7-38c84d62a5de" >
-		<http:listener doc:name="Listener DELETE CASE" doc:id="2b124f02-5c22-4e96-9966-fc1ed49a9729" config-ref="HTTP_Listener_config" path="/cases/{id}"/>
-		<http:request method="DELETE" doc:name="Request" doc:id="f9a5b146-ad3a-4916-8b04-ada7f270072b" config-ref="salesforce-system-api" path="/cases/{id}" >
+		<http:listener doc:name="DELETE" doc:id="2b124f02-5c22-4e96-9966-fc1ed49a9729" config-ref="HTTP_Listener_config" path="/cases/{id}"/>
+		<http:request method="DELETE" doc:name="SALESFORCE" doc:id="f9a5b146-ad3a-4916-8b04-ada7f270072b" config-ref="salesforce-system-api" path="/cases/{id}" >
 			<http:uri-params ><![CDATA[#[output application/java
 ---
 {
@@ -156,12 +163,11 @@ payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<logger level="INFO" doc:name="Logger" doc:id="6be6ad0b-a391-49a5-89d8-41f3778b3757" message="#[payload]" />
-		<flow-ref doc:name="Flow Reference" doc:id="93984327-ff38-44ae-b594-ae14ee10b3bb" name="salesforce-process-mail" />
-		<logger level="INFO" doc:name="Logger1" doc:id="0035025b-a0b3-46d3-9291-3fe4c68faa9d" />
+		<flow-ref doc:name="MAIL" doc:id="93984327-ff38-44ae-b594-ae14ee10b3bb" name="salesforce-process-mail" />
 	</flow>
 	<flow name="salesforce-process-get-accounts-salesforce" doc:id="7f2e2083-4ace-4cbf-bbcd-7a2d140ea061" >
-		<http:listener doc:name="Listener GET CASE" doc:id="313a2e5c-08f2-4b89-a82d-792703a42694" config-ref="HTTP_Listener_config" path="/cases" allowedMethods="GET" />
-		<http:request method="GET" doc:name="Request" doc:id="c70a8347-838e-4e39-8609-f980fc08f991" config-ref="salesforce-system-api" path="/cases" />
+		<http:listener doc:name="GET" doc:id="313a2e5c-08f2-4b89-a82d-792703a42694" config-ref="HTTP_Listener_config" path="/accounts/{limit}" allowedMethods="GET" />
+		<http:request method="GET" doc:name="SALESFORCE" doc:id="c70a8347-838e-4e39-8609-f980fc08f991" config-ref="salesforce-system-api" path="/cases" />
 		<ee:transform doc:name="Transform Message" doc:id="f0b03206-631e-48f0-a4ed-49108a07326d" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -171,12 +177,10 @@ payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<logger level="INFO" doc:name="Logger" doc:id="4e8f5a2d-c031-4d82-86d1-b6fb8f0043f5" message="#[payload]" />
-		<flow-ref doc:name="Flow Reference" doc:id="db057baf-19e7-4a5b-8ff7-697df66ed7c2" name="salesforce-process-mail" />
-		<logger level="INFO" doc:name="Logger1" doc:id="97c9c5cb-04cb-4b1e-8c2d-3c0d4651d8e8" />
 	</flow>
 	<flow name="salesforce-process-post-accounts" doc:id="225f989a-4280-4b6e-ac5b-33a83a6486f7" >
-		<http:listener doc:name="Listener POST CASE" doc:id="201eedbe-e90f-4461-aad6-0e1e926ea338" config-ref="HTTP_Listener_config" path="/cases" allowedMethods="POST" />
-		<http:request method="POST" doc:name="Request" doc:id="2bccb7a8-c817-461f-8bd3-0e7021aeb78a" config-ref="salesforce-system-api" path="/cases" />
+		<http:listener doc:name="POST" doc:id="201eedbe-e90f-4461-aad6-0e1e926ea338" config-ref="HTTP_Listener_config" path="/accounts" allowedMethods="POST" />
+		<http:request method="POST" doc:name="SALESFORCE" doc:id="2bccb7a8-c817-461f-8bd3-0e7021aeb78a" config-ref="salesforce-system-api" path="/cases" />
 		<ee:transform doc:name="Transform Message" doc:id="a29da08e-21fc-4ba5-95a7-5570d987b126" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -186,12 +190,12 @@ payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<logger level="INFO" doc:name="Logger" doc:id="aa5bcb66-d633-4201-9e10-8e1da7641eae" message="#[payload]" />
-		<flow-ref doc:name="Flow Reference" doc:id="eee4e799-b1dc-4a64-9648-ff08746a0f13" name="salesforce-process-mail" />
-		<logger level="INFO" doc:name="Logger1" doc:id="ea0e3602-020e-4a5b-8519-a23fc8687bc9" />
+		<flow-ref doc:name="MAIL" doc:id="eee4e799-b1dc-4a64-9648-ff08746a0f13" name="salesforce-process-mail" />
+		<flow-ref doc:name="SQL" doc:id="ac3b1f97-48c7-4ee4-8f57-12aa759f421f" name="salesforce-process-insert-sql" />
 	</flow>
 	<flow name="salesforce-process-patch-accounts-salesforce" doc:id="d9973140-2115-4cc3-89f3-ea49bd149d7a" >
-		<http:listener doc:name="Listener PATCH CASE" doc:id="d3004698-2ca5-421e-aab4-40db884a078c" config-ref="HTTP_Listener_config" path="/cases/{id}" />
-		<http:request method="PATCH" doc:name="Request" doc:id="fd8351db-bfd4-4024-8291-12897a27a9b2" config-ref="salesforce-system-api" path="/cases" >
+		<http:listener doc:name="PATCH" doc:id="d3004698-2ca5-421e-aab4-40db884a078c" config-ref="HTTP_Listener_config" path="/accounts/{id}" />
+		<http:request method="PATCH" doc:name="SALESFORCE" doc:id="fd8351db-bfd4-4024-8291-12897a27a9b2" config-ref="salesforce-system-api" path="/cases" >
 			<http:uri-params ><![CDATA[#[output application/java
 ---
 {
@@ -207,12 +211,12 @@ payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<logger level="INFO" doc:name="Logger" doc:id="d41c9063-251e-4289-9fa0-39410595390b" message="#[payload]" />
-		<flow-ref doc:name="Flow Reference" doc:id="5651cbc9-1c35-4876-99a5-48b2ac9bf47f" name="salesforce-process-mail" />
-		<logger level="INFO" doc:name="Logger1" doc:id="4db22c68-88e3-42b5-ad5a-741a03b68e6a" />
+		<flow-ref doc:name="MAIL" doc:id="5651cbc9-1c35-4876-99a5-48b2ac9bf47f" name="salesforce-process-mail" />
+		<flow-ref doc:name="SQL" doc:id="e78c9bf2-5526-4297-b553-65e3eb6e928a" name="salesforce-process-insert-sql" />
 	</flow>
 	<flow name="salesforce-process-delete-accounts-salesforce" doc:id="985404fd-8c3d-43a0-984d-0fa22561c6ce" >
-		<http:listener doc:name="Listener DELETE CASE" doc:id="c7079153-3030-4c73-a729-b9cc920539d3" config-ref="HTTP_Listener_config" path="/cases/{id}" />
-		<http:request method="DELETE" doc:name="Request" doc:id="e9fe7ee5-f3da-4090-9806-aaf0da1db381" config-ref="salesforce-system-api" path="/cases/{id}" >
+		<http:listener doc:name="DELETE" doc:id="c7079153-3030-4c73-a729-b9cc920539d3" config-ref="HTTP_Listener_config" path="/accounts/{id}" />
+		<http:request method="DELETE" doc:name="SALESFORCE" doc:id="e9fe7ee5-f3da-4090-9806-aaf0da1db381" config-ref="salesforce-system-api" path="/cases/{id}" >
 			<http:uri-params ><![CDATA[#[output application/java
 ---
 {
@@ -228,12 +232,11 @@ payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<logger level="INFO" doc:name="Logger" doc:id="fdfa7baa-2b62-4eae-89c4-68c4d8eda47e" message="#[payload]" />
-		<flow-ref doc:name="Flow Reference" doc:id="4e0a1dda-b0e2-4127-b49a-91c8d12fa67d" name="salesforce-process-mail" />
-		<logger level="INFO" doc:name="Logger1" doc:id="f86bf9e4-3dfe-4094-8b45-ab5119f5663e" />
+		<flow-ref doc:name="MAIL" doc:id="4e0a1dda-b0e2-4127-b49a-91c8d12fa67d" name="salesforce-process-mail" />
 	</flow>
 	<flow name="salesforce-process-get-contacts-salesforce" doc:id="49640b89-4b78-4bcf-bbfd-3e70a337fab8" >
-		<http:listener doc:name="Listener GET CASE" doc:id="2c4c3666-45c7-4577-8ef7-88b98e82ef1a" config-ref="HTTP_Listener_config" path="/cases" allowedMethods="GET" />
-		<http:request method="GET" doc:name="Request" doc:id="60882a44-12d2-4e0e-b0ee-01e4f59f1d52" config-ref="salesforce-system-api" path="/cases" />
+		<http:listener doc:name="Listener GET CASE" doc:id="2c4c3666-45c7-4577-8ef7-88b98e82ef1a" config-ref="HTTP_Listener_config" path="/contacs/{limit}" allowedMethods="GET" />
+		<http:request method="GET" doc:name="SALESFORCE" doc:id="60882a44-12d2-4e0e-b0ee-01e4f59f1d52" config-ref="salesforce-system-api" path="/cases" />
 		<ee:transform doc:name="Transform Message" doc:id="e3d68a05-b930-450d-bd50-a894ccaf863f" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -243,12 +246,10 @@ payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<logger level="INFO" doc:name="Logger" doc:id="c81fd0e5-a37f-4f03-b54f-3a53fc1b9ca5" message="#[payload]" />
-		<flow-ref doc:name="Flow Reference" doc:id="701f95c2-c35f-46c9-9ac3-1e7645ccd530" name="salesforce-process-mail" />
-		<logger level="INFO" doc:name="Logger1" doc:id="d130dfc3-38a2-4c38-bb28-7a6ff6ea02a2" />
 	</flow>
 	<flow name="salesforce-process-post-contact-salesforce" doc:id="d5fe6713-2f5d-4077-812a-0c5048964ba7" >
-		<http:listener doc:name="Listener POST CASE" doc:id="af7024f9-865f-467a-99d3-7ff28bcd7120" config-ref="HTTP_Listener_config" path="/cases" allowedMethods="POST" />
-		<http:request method="POST" doc:name="Request" doc:id="40bc4e57-8d9a-4a18-8de3-1d88e23f512d" config-ref="salesforce-system-api" path="/cases" />
+		<http:listener doc:name="POST" doc:id="af7024f9-865f-467a-99d3-7ff28bcd7120" config-ref="HTTP_Listener_config" path="/contacts" allowedMethods="POST" />
+		<http:request method="POST" doc:name="SALESFORCE" doc:id="40bc4e57-8d9a-4a18-8de3-1d88e23f512d" config-ref="salesforce-system-api" path="/cases" />
 		<ee:transform doc:name="Transform Message" doc:id="c62fa5a8-a2d9-4d24-a575-a5ebea87b2d1" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -258,12 +259,12 @@ payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<logger level="INFO" doc:name="Logger" doc:id="efc5a77b-2685-475e-8f38-b85caee8632e" message="#[payload]" />
-		<flow-ref doc:name="Flow Reference" doc:id="4c6b16da-b0c4-4b68-bda6-fd2202bf7209" name="salesforce-process-mail" />
-		<logger level="INFO" doc:name="Logger1" doc:id="973faf8b-9335-415c-81e2-a1e891614983" />
+		<flow-ref doc:name="MAIL" doc:id="4c6b16da-b0c4-4b68-bda6-fd2202bf7209" name="salesforce-process-mail" />
+		<flow-ref doc:name="SQL" doc:id="b66ba234-6095-4f5c-9eb5-0db429abe22f" name="salesforce-process-insert-sql" />
 	</flow>
 	<flow name="salesforce-process-patch-contact-salesforce" doc:id="cc2dc1d2-5574-41b6-b819-9dc0a954d164" >
-		<http:listener doc:name="Listener PATCH CASE" doc:id="7c40d4d9-be4b-43e6-ae78-a22b8e422178" config-ref="HTTP_Listener_config" path="/cases/{id}" />
-		<http:request method="PATCH" doc:name="Request" doc:id="2536dd3a-cd4b-404f-a412-874d9f7e3b6a" config-ref="salesforce-system-api" path="/cases" >
+		<http:listener doc:name="PATCH" doc:id="7c40d4d9-be4b-43e6-ae78-a22b8e422178" config-ref="HTTP_Listener_config" path="/contacts/{id}" />
+		<http:request method="PATCH" doc:name="SALESFORCE" doc:id="2536dd3a-cd4b-404f-a412-874d9f7e3b6a" config-ref="salesforce-system-api" path="/cases" >
 			<http:uri-params ><![CDATA[#[output application/java
 ---
 {
@@ -279,13 +280,13 @@ payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<logger level="INFO" doc:name="Logger" doc:id="78e68cd5-75fa-4628-9009-0416f90e016f" message="#[payload]" />
-		<flow-ref doc:name="Flow Reference" doc:id="4d10ad51-5c04-405c-8721-20b5db234347" name="salesforce-process-mail" />
-		<logger level="INFO" doc:name="Logger1" doc:id="55045f6f-b0bd-4d6d-b886-8e8afaeb35e4" />
+		<flow-ref doc:name="MAIL" doc:id="4d10ad51-5c04-405c-8721-20b5db234347" name="salesforce-process-mail" />
+		<flow-ref doc:name="SQL" doc:id="023a03fd-b99a-41c2-bee5-5ec1571afc2b" name="salesforce-process-insert-sql" />
 	</flow>
 	<flow name="salesforce-process-delete-contact-salesforce" doc:id="e5f429ac-ba48-4b87-9018-86835e0d0eaa" >
-		<http:listener doc:name="Listener DELETE CASE" doc:id="4f0baf20-8d25-4e70-95a4-5d7bb88f3b96" config-ref="HTTP_Listener_config" path="/cases/{id}" />
-		<http:request method="DELETE" doc:name="Request" doc:id="8bc68c6e-01ab-4e09-8316-7e90c0afd81e" config-ref="salesforce-system-api" path="/cases/{id}" >
-			<http:uri-params ><![CDATA[#[output application/java
+		<http:listener doc:name="CONTACT" doc:id="4f0baf20-8d25-4e70-95a4-5d7bb88f3b96" config-ref="HTTP_Listener_config" path="/contacts/{id}" allowedMethods="DELETE"/>
+		<http:request method="DELETE" doc:name="SALESFORCE" doc:id="8bc68c6e-01ab-4e09-8316-7e90c0afd81e" config-ref="salesforce-system-api" path="/contacts">
+			<http:uri-params><![CDATA[#[output application/java
 ---
 {
 	id : attributes.uriParameters.id
@@ -300,7 +301,19 @@ payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<logger level="INFO" doc:name="Logger" doc:id="9bf6af1d-b88f-405b-8d72-8d5ddd6a8d64" message="#[payload]" />
-		<flow-ref doc:name="Flow Reference" doc:id="d7233c1a-4b5c-43dc-b71f-c94cb5a0e5e0" name="salesforce-process-mail" />
-		<logger level="INFO" doc:name="Logger1" doc:id="e2e7fa5a-43c6-4b4c-a2ab-487bbf2ef113" />
+		<flow-ref doc:name="MAIL" doc:id="d7233c1a-4b5c-43dc-b71f-c94cb5a0e5e0" name="salesforce-process-mail" />
+	</flow>
+	<flow name="salesforce-process-insert-sql" doc:id="b0cbcdd3-f6f0-415d-85c2-2d18588358cd" >
+		<http:listener doc:name="POST" doc:id="0dcfaf87-9a4a-4536-bba9-d09e25a747f6" config-ref="HTTP_Listener_config" path="/database" allowedMethods="POST"/>
+		<http:request method="POST" doc:name="SQL" doc:id="889ca36f-7cd1-46b7-8ba7-f2743503c9df" config-ref="sql-system-api" path="/cases" >
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="55a971fe-3e37-40a6-815f-cadaf452078a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 	</flow>
 </mule>
